@@ -1,0 +1,5 @@
+flask
+redis
+pdfkit
+jinja2
+PyPDF2
