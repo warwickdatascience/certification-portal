@@ -68,8 +68,8 @@ def generate_pdf(name, mentor, course, details):
     }
 
     pdfkit.from_file('templates/certificate.html',
-                     f'static/certificates/{cert_id}-temp.pdf', options=options)
-    infile = PdfFileReader(f'static/certificates/{cert_id}-temp.pdf', 'rb')
+                     f'static/certificates/{cert_id}.pdf', options=options)
+    infile = PdfFileReader(f'static/certificates/{cert_id}.pdf', 'rb')
     output = PdfFileWriter()
     p = infile.getPage(0)
     output.addPage(p)
