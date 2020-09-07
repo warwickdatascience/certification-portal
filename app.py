@@ -12,9 +12,32 @@ import uuid
 from os import listdir
 from os.path import isfile, join
 from PyPDF2 import PdfFileWriter, PdfFileReader
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import text
 
 app = Flask(__name__)
 
+# name of the database
+db_name = "certificate_portal.db"
+
+# add config variables for SQL connection
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_name
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+
+# the variable to be used for all SQLAlchemy commands
+db = SQLAlchemy(app)
+
+# test the database connection through this route (for debugging)
+@app.route("/dbtest")
+def testdb():
+    try:
+        db.session.query("1").from_statement(text("SELECT 1")).all()
+        return "<h1>It works.</h1>"
+    except Exception as e:
+        # e holds descirption of the error
+        error_text = "<p>The error:<br>" + str(e) + "</p>"
+        hed = "<h1>Something is broken.</h1>"
+        return hed + error_text
 
 def generate_pdf(name, mentor, course, details):
     templateLoader = jinja2.FileSystemLoader(searchpath="./")
@@ -86,7 +109,7 @@ def certificate(iden):
     if False: # TODO abort if file does not exist
         abort(400)
 
-    return render_template("cert.html", iden=url_for('static', filename="certificates/"+iden+".pdf"))
+    return render_template("cert.html", iden=url_for('static', filename=f"certificates/{iden}.pdf"))
     # return send_file('static/certificates/certificate-docker2.pdf', attachment_filename=f'{iden}.pdf')
     # with open('/code/certificate-docker.pdf', 'rb') as static_file:
         # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
