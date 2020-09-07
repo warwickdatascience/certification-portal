@@ -4,13 +4,13 @@
 
 ## SQL Requirements
 - People table
-	- Person ID, Name
-- Course table
-	- Course ID, Course Name
+	- ID, Name
+- Courses table
+	- ID, Name, Description
 - CourseMentors table
-	- CourseID, PersonID
-- Certificate table
-	- Person ID, Course ID, Mentor ID (also from People table)
+	- ID, MentorID, CourseID
+- Certificates table
+	- ID, HashValue, StudentID, MentorID, CourseID
 
 - Process
 	- Populate DB with information (we could have an administrative endpoint to do this)

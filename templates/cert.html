@@ -5,11 +5,9 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-		<meta property="og:title" content="To be taken from SQL db">
-		<meta property="og:url" content="http://www.example.com">
-		<meta property="og:type" content="website">
-		<meta property="og:description" content="Some more information that can be scraped from the SQL database">
-		<meta property="og:Image" content="pathtoimage">
+		<meta property="og:title" content="{{ courseName }} - Certificate of Accomplishment">
+		<meta property="og:description" content="{{ studentName }} has completed Warwick Data Science Society's course, {{ courseName }}">
+		<meta property="og:Image" content="{{ url_for('static', filename='certificate_og_image.png') }}">
 	</head>
 	<body>
     <h1>TEST</h1>

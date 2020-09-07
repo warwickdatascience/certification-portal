@@ -27,6 +27,31 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
 
+class Person(db.Model):
+    __tablename__ = "people"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+
+class Course(db.Model):
+    __tablename__ = "courses"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    desc = db.Column(db.String)
+
+class CourseMentor(db.Model):
+    __tablename__ = "coursementors"
+    id = db.Column(db.Integer, primary_key=True)
+    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
+    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
+
+class Certificate(db.Model):
+    __tablename__ = "certificates"
+    id = db.Column(db.Integer, primary_key=True)
+    hashValue = db.Column(db.String)
+    studentID = db.Column(db.Integer, db.ForeignKey("people.id"))
+    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
+    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
+
 # test the database connection through this route (for debugging)
 @app.route("/dbtest")
 def testdb():
@@ -39,12 +64,11 @@ def testdb():
         hed = "<h1>Something is broken.</h1>"
         return hed + error_text
 
-def generate_pdf(name, mentor, course, details):
+def generate_pdf(name, mentor, course, details, cert_id):
     templateLoader = jinja2.FileSystemLoader(searchpath="./")
     templateEnv = jinja2.Environment(loader=templateLoader)
     TEMPLATE_FILE = "templates/htmltemplate.html"
     template = templateEnv.get_template(TEMPLATE_FILE)
-    cert_id = uuid.uuid1()
     outputText = template.render(
         id=cert_id,
         name=name,
@@ -82,16 +106,39 @@ def generate_pdf(name, mentor, course, details):
 def generate():
     if not request.json:
         abort(400)
+
+    studentID = request.json["studentID"]
+    mentorID = request.json["mentorID"]
+    courseID = request.json["courseID"]
+
+    params = {
+        "name": Person.query.get_or_404(studentID).name,
+        "mentor": Person.query.get_or_404(mentorID).name,
+        "course": Course.query.get_or_404(courseID).name,
+        "desc": Course.query.get_or_404(courseID).desc
+    }
+
+    '''
     params = {
         'name': request.json['name'],
         'mentor': request.json['mentor'],
         'course': request.json['course'],
         'desc': request.json['desc']
     }
-    generate_pdf(params['name'], params['mentor'],
-                 params['course'], params['desc'])
-    resp = jsonify(success=True)
-    return resp
+    '''
+    cert_id = str(uuid.uuid1())
+    entry = Certificate(hashValue=cert_id, studentID=studentID, mentorID=mentorID, courseID=courseID)
+
+    try:
+        db.session.add(entry)
+        db.session.commit()
+
+        generate_pdf(params['name'], params['mentor'],
+                 params['course'], params['desc'], cert_id)
+        resp = jsonify(success=True)
+        return resp
+    except:
+        return "There was an issue creating your certificate"
 
 
 @app.route('/htmltemplate')
@@ -109,33 +156,26 @@ def certificate(iden):
     if False: # TODO abort if file does not exist
         abort(400)
 
-    return render_template("cert.html", iden=url_for('static', filename=f"certificates/{iden}.pdf"))
+    certInfo = Certificate.query.filter_by(hashValue=iden).first()
+
+    courseName = Course.query.get_or_404(certInfo.courseID).name
+    studentName = Person.query.get_or_404(certInfo.studentID).name
+
+    return render_template("cert.html", iden=url_for('static', filename=f"certificates/{iden}.pdf"), courseName=courseName, studentName=studentName)
     # return send_file('static/certificates/certificate-docker2.pdf', attachment_filename=f'{iden}.pdf')
     # with open('/code/certificate-docker.pdf', 'rb') as static_file:
         # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
 # 
 
-class Person(db.Model):
-    __tablename__ = "people"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
 
-class Course(db.Model):
-    __tablename__ = "courses"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    desc = db.Column(db.String)
+@app.route("/tables")
+def tables():
+    try:
+        people = Person.query.all()
+        text = ""
+        for person in people:
+            text += person.name
+        return text
+    except Exception as e:
+        return str(e)
 
-class CourseMentor(db.Model):
-    __tablename__ = "coursementors"
-    id = db.Column(db.Integer, primary_key=True)
-    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
-    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
-
-class Certificate(db.Model):
-    __tablename__ = "certificate"
-    id = db.Column(db.Integer, primary_key=True)
-    hashValue = db.Column(db.String)
-    studentID = db.Column(db.Integer, db.ForeignKey("people.id"))
-    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
-    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
