@@ -114,3 +114,28 @@ def certificate(iden):
     # with open('/code/certificate-docker.pdf', 'rb') as static_file:
         # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
 # 
+
+class Person(db.Model):
+    __tablename__ = "people"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+
+class Course(db.Model):
+    __tablename__ = "courses"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    desc = db.Column(db.String)
+
+class CourseMentor(db.Model):
+    __tablename__ = "coursementors"
+    id = db.Column(db.Integer, primary_key=True)
+    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
+    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
+
+class Certificate(db.Model):
+    __tablename__ = "certificate"
+    id = db.Column(db.Integer, primary_key=True)
+    hashValue = db.Column(db.String)
+    studentID = db.Column(db.Integer, db.ForeignKey("people.id"))
+    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
+    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
