@@ -16,6 +16,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 
 app = Flask(__name__)
+'''
+FOR LOCAL TESTING ONLY
 
 # name of the database
 db_name = "certificate_portal.db"
@@ -23,34 +25,39 @@ db_name = "certificate_portal.db"
 # add config variables for SQL connection
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_name
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+'''
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://cert_app:PASSWORD@localhost/certificate_database"
 
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
 
-class Person(db.Model):
-    __tablename__ = "people"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+class Mentor(db.Model):
+    __tablename__ = "mentor"
+    mentor_id = db.Column(db.Integer, primary_key=True)
+    mentor_fname = db.Column(db.String)
+    mentor_lname = db.Column(db.String)
+
+class Student(db.Model):
+    __tablename__ = "student"
+    student_id = db.Column(db.Integer, primary_key=True)
+    student_fname = db.Column(db.String)
+    student_lname = db.Column(db.String)
 
 class Course(db.Model):
-    __tablename__ = "courses"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    desc = db.Column(db.String)
+    __tablename__ = "course"
+    course_id = db.Column(db.Integer, primary_key=True)
+    course_name = db.Column(db.String)
+    course_details = db.Column(db.String)
 
-class CourseMentor(db.Model):
-    __tablename__ = "coursementors"
-    id = db.Column(db.Integer, primary_key=True)
-    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
-    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
-
-class Certificate(db.Model):
-    __tablename__ = "certificates"
-    id = db.Column(db.Integer, primary_key=True)
-    hashValue = db.Column(db.String)
-    studentID = db.Column(db.Integer, db.ForeignKey("people.id"))
-    mentorID = db.Column(db.Integer, db.ForeignKey("people.id"))
-    courseID = db.Column(db.Integer, db.ForeignKey("courses.id"))
+class Certification(db.Model):
+    __tablename__ = "certification"
+    certification_id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.student_id"))
+    course_id = db.Column(db.Integer, db.ForeignKey("course.course_id"))
+    mentor_id = db.Column(db.Integer, db.ForeignKey("mentor.mentor_id"))
+    certification_code = db.Column(db.String)
+    certification_date = db.Column(db.DateTime)
 
 # test the database connection through this route (for debugging)
 @app.route("/dbtest")
@@ -107,15 +114,15 @@ def generate():
     if not request.json:
         abort(400)
 
-    studentID = request.json["studentID"]
-    mentorID = request.json["mentorID"]
-    courseID = request.json["courseID"]
+    student_id = request.json["student_id"]
+    mentor_id = request.json["mentor_id"]
+    course_id = request.json["course_id"]
 
     params = {
-        "name": Person.query.get_or_404(studentID).name,
-        "mentor": Person.query.get_or_404(mentorID).name,
-        "course": Course.query.get_or_404(courseID).name,
-        "desc": Course.query.get_or_404(courseID).desc
+        "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
+        "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
+        "course": Course.query.get_or_404(course_id).course_name,
+        "desc": Course.query.get_or_404(course_id).course_details
     }
 
     '''
@@ -127,7 +134,7 @@ def generate():
     }
     '''
     cert_id = str(uuid.uuid1())
-    entry = Certificate(hashValue=cert_id, studentID=studentID, mentorID=mentorID, courseID=courseID)
+    entry = Certification(student_id=student_id, course_id=course_id, mentor_id=mentor_id, certification_code=cert_id, certification_date=datetime.date.today())
 
     try:
         db.session.add(entry)
@@ -156,26 +163,13 @@ def certificate(iden):
     if False: # TODO abort if file does not exist
         abort(400)
 
-    certInfo = Certificate.query.filter_by(hashValue=iden).first()
+    certInfo = Certification.query.filter_by(certification_code=iden).first()
 
-    courseName = Course.query.get_or_404(certInfo.courseID).name
-    studentName = Person.query.get_or_404(certInfo.studentID).name
+    courseName = Course.query.get_or_404(certInfo.course_id).course_name
+    studentName = f"{Student.query.get_or_404(certInfo.student_id).student_fname} {Student.query.get_or_404(certInfo.student_id).student_lname}"
 
     return render_template("cert.html", iden=url_for('static', filename=f"certificates/{iden}.pdf"), courseName=courseName, studentName=studentName)
     # return send_file('static/certificates/certificate-docker2.pdf', attachment_filename=f'{iden}.pdf')
     # with open('/code/certificate-docker.pdf', 'rb') as static_file:
         # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
 # 
-
-
-@app.route("/tables")
-def tables():
-    try:
-        people = Person.query.all()
-        text = ""
-        for person in people:
-            text += person.name
-        return text
-    except Exception as e:
-        return str(e)
-
