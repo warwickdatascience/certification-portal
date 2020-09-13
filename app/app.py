@@ -1,5 +1,5 @@
 import time
-
+import os
 
 from flask import (Flask, render_template, request, abort, jsonify, redirect, url_for)
 from flask import send_file
@@ -15,6 +15,7 @@ from PyPDF2 import PdfFileWriter, PdfFileReader
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 import pymysql
+import jsonpickle
 
 app = Flask(__name__)
 '''
@@ -30,7 +31,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 
 
 #app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://cert_app:79LgsdC8GFjD$%ksn6Vz@localhost:3306/certificate_database"
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@db:3306/knights"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@db:3306/certificate_portal"
 
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
@@ -111,6 +112,106 @@ def generate_pdf(name, mentor, course, details, cert_id):
     with open(f'static/certificates/{cert_id}.pdf', 'wb') as f:
         output.write(f)
 
+# CRUD endpoints
+@app.route("/crud/<table>", methods=["POST", "GET"])
+def crudTable(table):
+    # create a new entry
+    if request.method == "POST":
+        # no checking - just throw an exception if SQL fails
+        if table == "mentor":
+            entry = Mentor(mentor_fname=request.json["mentor_fname"], mentor_lname=request.json["mentor_lname"])
+        elif table == "student":
+            entry = Student(student_fname=request.json["student_fname"], student_lname=request.json["student_lname"])
+        elif table == "course":
+            entry = Course(course_name=request.json["course_name"], course_details=request.json["course_details"])
+        elif table == "certification":
+            # don't know when this would be used
+            entry = Certification(student_id=request.json["student_id"], course_id=request.json["course_id"], mentor_id=request.json["mentor_id"], certification_code=request.json["certification_code"], certification_date=request.json["certification_date"])
+        else:
+            return f"Table {table} does not exist!"
+        try:
+            db.session.add(entry)
+            db.session.commit()
+            return redirect(request.url)
+        except Exception as e:
+            return str(e)
+
+    # get all entries
+    if table == "mentor":
+        returnArray = Mentor.query.all()
+    elif table == "student":
+        returnArray = Student.query.all()
+    elif table == "course":
+        returnArray = Course.query.all()
+    elif table == "certification":
+        returnArray = Certification.query.all()
+    else:
+        return f"Table {table} does not exist!"
+
+    return jsonpickle.encode(returnArray)
+
+@app.route("/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
+def crudTableId(table, iden):
+    if table == "mentor":
+        field = Mentor.query.get_or_404(iden)
+    elif table == "student":
+        field = Student.query.get_or_404(iden)
+    elif table == "course":
+        field = Course.query.get_or_404(iden)
+    elif table == "certification":
+        field = Certification.query.get_or_404(iden)
+    else:
+        return f"Table {table} does not exist!"
+
+    if request.method == "PUT":
+        if table == "mentor":
+            if "mentor_fname" in request.json:
+                field.mentor_fname = request.json["mentor_fname"]
+            if "mentor_lname" in request.json:
+                field.mentor_lname = request.json["mentor_lname"]
+
+        elif table == "student":
+            if "student_fname" in request.json:
+                field.student_fname = request.json["student_fname"]
+            if "student_lname" in request.json:
+                field.student_lname = request.json["student_lname"]
+
+        elif table == "course":
+            if "course_name" in request.json:
+                field.course_name = request.json["course_name"]
+            if "course_details" in request.json:
+                field.course_details = request.json["course_details"]
+
+        elif table == "certification":
+            # don't know when this would be used
+            if "student_id" in request.json:
+                field.student_id = request.json["student_id"]
+            if "course_id" in request.json:
+                field.course_id = request.json["course_id"]
+            if "mentor_id" in request.json:
+                field.mentor_id = request.json["mentor_id"]
+            if "certification_code" in request.json:
+                field.certification_code = request.json["certification_code"]
+            if "certification_date" in request.json:
+                field.certification_date = request.json["certification_date"]
+
+        else:
+            return f"Table {table} does not exist!"
+        try:
+            db.session.commit()
+            return redirect(request.url)
+        except Exception as e:
+            return str(e)
+
+    if request.method == "DELETE":
+        try:
+            db.session.delete(field)
+            db.session.commit()
+            return f"Successfully deleted field with id {iden}"
+        except Exception as e:
+            return str(e)
+
+    return jsonpickle.encode(field)
 
 @app.route('/generate', methods=['POST'])
 def generate():
