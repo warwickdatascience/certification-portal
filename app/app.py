@@ -28,7 +28,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_name
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 '''
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://cert_app:79LgsdC8GFjD$%ksn6Vz@localhost:3306/certificate_database"
+
+#app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://cert_app:79LgsdC8GFjD$%ksn6Vz@localhost:3306/certificate_database"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@db:3306/knights"
 
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)

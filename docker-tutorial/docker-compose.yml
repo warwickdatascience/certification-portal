@@ -1,16 +1,15 @@
-version: '3'
+version: "2"
 services:
   app:
     build: ./app
-    ports:
-      - "5000:5000"
     links:
       - db
-    volumes:
-      - .:/code
+    ports:
+      - "5000:5000"
     environment:
-      FLASK_APP: app/app.py
       FLASK_ENV: development
+    volumes:
+      - ./app:/code
 
   db:
     image: mysql:5.7
@@ -20,4 +19,3 @@ services:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
-
