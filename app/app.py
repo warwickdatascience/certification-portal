@@ -1,7 +1,14 @@
 import time
 import os
 
-from flask import (Flask, render_template, request, abort, jsonify, redirect, url_for)
+from flask import (
+    Flask,
+    render_template,
+    request,
+    abort,
+    jsonify,
+    redirect,
+    url_for)
 from flask import send_file
 
 import jinja2
@@ -36,11 +43,13 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@db:3306/certi
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
 
+
 class Mentor(db.Model):
     __tablename__ = "mentor"
     mentor_id = db.Column(db.Integer, primary_key=True)
     mentor_fname = db.Column(db.String)
     mentor_lname = db.Column(db.String)
+
 
 class Student(db.Model):
     __tablename__ = "student"
@@ -48,11 +57,13 @@ class Student(db.Model):
     student_fname = db.Column(db.String)
     student_lname = db.Column(db.String)
 
+
 class Course(db.Model):
     __tablename__ = "course"
     course_id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String)
     course_details = db.Column(db.String)
+
 
 class Certification(db.Model):
     __tablename__ = "certification"
@@ -74,6 +85,7 @@ def testdb():
         error_text = "<p>The error:<br>" + str(e) + "</p>"
         hed = "<h1>Something is broken.</h1>"
         return hed + error_text
+
 
 def generate_pdf(name, mentor, course, details, cert_id):
     templateLoader = jinja2.FileSystemLoader(searchpath="./")
@@ -119,14 +131,25 @@ def crudTable(table):
     if request.method == "POST":
         # no checking - just throw an exception if SQL fails
         if table == "mentor":
-            entry = Mentor(mentor_fname=request.json["mentor_fname"], mentor_lname=request.json["mentor_lname"])
+            entry = Mentor(
+                mentor_fname=request.json["mentor_fname"],
+                mentor_lname=request.json["mentor_lname"])
         elif table == "student":
-            entry = Student(student_fname=request.json["student_fname"], student_lname=request.json["student_lname"])
+            entry = Student(
+                student_fname=request.json["student_fname"],
+                student_lname=request.json["student_lname"])
         elif table == "course":
-            entry = Course(course_name=request.json["course_name"], course_details=request.json["course_details"])
+            entry = Course(
+                course_name=request.json["course_name"],
+                course_details=request.json["course_details"])
         elif table == "certification":
             # don't know when this would be used
-            entry = Certification(student_id=request.json["student_id"], course_id=request.json["course_id"], mentor_id=request.json["mentor_id"], certification_code=request.json["certification_code"], certification_date=request.json["certification_date"])
+            entry = Certification(
+                student_id=request.json["student_id"],
+                course_id=request.json["course_id"],
+                mentor_id=request.json["mentor_id"],
+                certification_code=request.json["certification_code"],
+                certification_date=request.json["certification_date"])
         else:
             return f"Table {table} does not exist!"
         try:
@@ -149,6 +172,7 @@ def crudTable(table):
         return f"Table {table} does not exist!"
 
     return jsonpickle.encode(returnArray)
+
 
 @app.route("/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
 def crudTableId(table, iden):
@@ -213,6 +237,7 @@ def crudTableId(table, iden):
 
     return jsonpickle.encode(field)
 
+
 @app.route('/generate', methods=['POST'])
 def generate():
     if not request.json:
@@ -226,8 +251,7 @@ def generate():
         "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
         "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
         "course": Course.query.get_or_404(course_id).course_name,
-        "desc": Course.query.get_or_404(course_id).course_details
-    }
+        "desc": Course.query.get_or_404(course_id).course_details}
 
     '''
     params = {
@@ -238,17 +262,22 @@ def generate():
     }
     '''
     cert_id = str(uuid.uuid1())
-    entry = Certification(student_id=student_id, course_id=course_id, mentor_id=mentor_id, certification_code=cert_id, certification_date=datetime.date.today())
+    entry = Certification(
+        student_id=student_id,
+        course_id=course_id,
+        mentor_id=mentor_id,
+        certification_code=cert_id,
+        certification_date=datetime.date.today())
 
     try:
         db.session.add(entry)
         db.session.commit()
 
         generate_pdf(params['name'], params['mentor'],
-                 params['course'], params['desc'], cert_id)
+                     params['course'], params['desc'], cert_id)
         resp = jsonify(success=True)
         return resp
-    except:
+    except BaseException:
         return "There was an issue creating your certificate"
 
 
@@ -264,7 +293,7 @@ def preview():
 
 @app.route('/certificate/<iden>')
 def certificate(iden):
-    if False: # TODO abort if file does not exist
+    if False:  # TODO abort if file does not exist
         abort(400)
 
     certInfo = Certification.query.filter_by(certification_code=iden).first()
@@ -272,8 +301,14 @@ def certificate(iden):
     courseName = Course.query.get_or_404(certInfo.course_id).course_name
     studentName = f"{Student.query.get_or_404(certInfo.student_id).student_fname} {Student.query.get_or_404(certInfo.student_id).student_lname}"
 
-    return render_template("cert.html", iden=url_for('static', filename=f"certificates/{iden}.pdf"), courseName=courseName, studentName=studentName)
+    return render_template(
+        "cert.html",
+        iden=url_for(
+            'static',
+            filename=f"certificates/{iden}.pdf"),
+        courseName=courseName,
+        studentName=studentName)
     # return send_file('static/certificates/certificate-docker2.pdf', attachment_filename=f'{iden}.pdf')
     # with open('/code/certificate-docker.pdf', 'rb') as static_file:
-        # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
-# 
+    # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
+#
