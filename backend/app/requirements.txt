@@ -6,3 +6,5 @@ PyPDF2
 flask-sqlalchemy
 pymysql
 jsonpickle
+flask-jwt-extended
+requests
