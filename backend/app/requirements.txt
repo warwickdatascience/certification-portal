@@ -8,3 +8,4 @@ pymysql
 jsonpickle
 flask-jwt-extended
 requests
+mysql-connector-python
