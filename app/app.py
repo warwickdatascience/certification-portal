@@ -11,6 +11,15 @@ from flask import (
     url_for)
 from flask import send_file
 
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    jwt_refresh_token_required, create_refresh_token,
+    get_jwt_identity, set_access_cookies,
+    set_refresh_cookies, unset_jwt_cookies
+)
+
+from werkzeug.security import safe_str_cmp
+import requests
 import jinja2
 import pdfkit
 import datetime
@@ -24,7 +33,34 @@ from sqlalchemy.sql import text
 import pymysql
 import jsonpickle
 
+from users.user import User
+
+
 app = Flask(__name__)
+app.debug = True
+app.config['SECRET_KEY'] = 'super-secret' # need to change to os.environ.get from envfile
+
+app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+
+# Set the cookie paths, so that you are only sending your access token
+# cookie to the access endpoints, and only sending your refresh token
+# to the refresh endpoint. Technically this is optional, but it is in
+# your best interest to not send additional cookies in the request if
+# they aren't needed.
+app.config['JWT_ACCESS_COOKIE_PATH'] = '/api/'
+app.config['JWT_REFRESH_COOKIE_PATH'] = '/token/refresh'
+
+# Disable CSRF protection for this example. In almost every case,
+# this is a bad idea. See examples/csrf_protection_with_cookies.py
+# for how safely store JWTs in cookies
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+
+# Set the secret key to sign the JWTs with
+app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
+
+jwt = JWTManager(app)
+
+
 '''
 FOR LOCAL TESTING ONLY
 
@@ -74,8 +110,66 @@ class Certification(db.Model):
     certification_code = db.Column(db.String)
     certification_date = db.Column(db.DateTime)
 
+
+@app.route('/token/auth', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != 'user1' or request.form['password'] != 'abcxyz':
+            error = 'Invalid Credentials. Please try again.'
+        else:
+            dictToSend = {
+                'username': request.form['username'],
+                'password': request.form['password']
+            }
+            access_token = create_access_token(identity=dictToSend['username'])
+            refresh_token = create_refresh_token(
+                identity=dictToSend['username'])
+            # Set the JWT cookies in the response
+            resp = jsonify({'login': True})
+            set_access_cookies(resp, access_token)
+            set_refresh_cookies(resp, refresh_token)
+            return resp, 200
+    return render_template('login.html', error=error)
+
+
+@app.route('/token/refresh', methods=['POST'])
+@jwt_refresh_token_required
+def refresh():
+    # Create the new access token
+    current_user = get_jwt_identity()
+    access_token = create_access_token(identity=current_user)
+
+    # Set the JWT access cookie in the response
+    resp = jsonify({'refresh': True})
+    set_access_cookies(resp, access_token)
+    return resp, 200
+
+# Because the JWTs are stored in an httponly cookie now, we cannot
+# log the user out by simply deleting the cookie in the frontend.
+# We need the backend to send us a response to delete the cookies
+# in order to logout. unset_jwt_cookies is a helper function to
+# do just that.
+
+
+@app.route('/token/remove', methods=['POST'])
+def logout():
+    resp = jsonify({'logout': True})
+    unset_jwt_cookies(resp)
+    return resp, 200
+
+
+@app.route('/api/home', methods=['GET'])
+@jwt_required
+def home():
+    username = get_jwt_identity()
+    return jsonify({'hello': 'from {}'.format(username)}), 200
+
 # test the database connection through this route (for debugging)
-@app.route("/dbtest")
+
+
+@app.route("/api/dbtest")
+@jwt_required
 def testdb():
     try:
         db.session.query("1").from_statement(text("SELECT 1")).all()
@@ -125,7 +219,10 @@ def generate_pdf(name, mentor, course, details, cert_id):
         output.write(f)
 
 # CRUD endpoints
-@app.route("/crud/<table>", methods=["POST", "GET"])
+
+
+@app.route("/api/crud/<table>", methods=["POST", "GET"])
+@jwt_required
 def crudTable(table):
     # create a new entry
     if request.method == "POST":
@@ -174,7 +271,8 @@ def crudTable(table):
     return jsonpickle.encode(returnArray)
 
 
-@app.route("/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
+@app.route("/api/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
+@jwt_required
 def crudTableId(table, iden):
     if table == "mentor":
         field = Mentor.query.get_or_404(iden)
@@ -238,64 +336,70 @@ def crudTableId(table, iden):
     return jsonpickle.encode(field)
 
 
-@app.route('/generate', methods=['POST'])
+@app.route('/api/generate', methods=['GET', 'POST'])
+@jwt_required
 def generate():
-    if not request.json:
-        abort(400)
+    if request.method == 'POST':
+        if not request.json:
+            abort(400)
+        if request.form is not None:
+            student_id = request.form["student_id"]
+            mentor_id = request.form["mentor_id"]
+            course_id = request.form["course_id"]
+        else:
+            student_id = request.json["student_id"]
+            mentor_id = request.json["mentor_id"]
+            course_id = request.json["course_id"]
 
-    student_id = request.json["student_id"]
-    mentor_id = request.json["mentor_id"]
-    course_id = request.json["course_id"]
+        params = {
+            "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
+            "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
+            "course": Course.query.get_or_404(course_id).course_name,
+            "desc": Course.query.get_or_404(course_id).course_details}
 
-    params = {
-        "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
-        "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
-        "course": Course.query.get_or_404(course_id).course_name,
-        "desc": Course.query.get_or_404(course_id).course_details}
+        '''
+        params = {
+            'name': request.json['name'],
+            'mentor': request.json['mentor'],
+            'course': request.json['course'],
+            'desc': request.json['desc']
+        }
+        '''
+        cert_id = str(uuid.uuid1())
+        entry = Certification(
+            student_id=student_id,
+            course_id=course_id,
+            mentor_id=mentor_id,
+            certification_code=cert_id,
+            certification_date=datetime.date.today())
 
-    '''
-    params = {
-        'name': request.json['name'],
-        'mentor': request.json['mentor'],
-        'course': request.json['course'],
-        'desc': request.json['desc']
-    }
-    '''
-    cert_id = str(uuid.uuid1())
-    entry = Certification(
-        student_id=student_id,
-        course_id=course_id,
-        mentor_id=mentor_id,
-        certification_code=cert_id,
-        certification_date=datetime.date.today())
+        try:
+            db.session.add(entry)
+            db.session.commit()
 
-    try:
-        db.session.add(entry)
-        db.session.commit()
-
-        generate_pdf(params['name'], params['mentor'],
-                     params['course'], params['desc'], cert_id)
-        resp = jsonify(success=True)
-        return resp
-    except BaseException:
-        return "There was an issue creating your certificate"
+            generate_pdf(params['name'], params['mentor'],
+                         params['course'], params['desc'], cert_id)
+            resp = jsonify(success=True)
+            return resp
+        except BaseException:
+            return "There was an issue creating your certificate"
+    return render_template('generate.html')
 
 
-@app.route('/htmltemplate')
+@app.route('/api/htmltemplate')
+@jwt_required
 def htmltemplate():
     return render_template("htmltemplate.html")
 
 
-@app.route('/preview')
+@app.route('/api/preview')
+@jwt_required
 def preview():
     return render_template("certificate.html")
 
 
 @app.route('/certificate/<iden>')
 def certificate(iden):
-    if False:  # TODO abort if file does not exist
-        abort(400)
-
     certInfo = Certification.query.filter_by(certification_code=iden).first()
 
     courseName = Course.query.get_or_404(certInfo.course_id).course_name
@@ -312,3 +416,7 @@ def certificate(iden):
     # with open('/code/certificate-docker.pdf', 'rb') as static_file:
     # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
 #
+
+
+if __name__ == '__main__':
+    app.run()
