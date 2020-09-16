@@ -1,8 +1,0 @@
-flask
-redis
-pdfkit
-jinja2
-PyPDF2
-flask-sqlalchemy
-pymysql
-jsonpickle
