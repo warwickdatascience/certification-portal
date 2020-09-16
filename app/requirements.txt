@@ -1,3 +1,4 @@
+requests
 flask
 redis
 pdfkit
@@ -6,3 +7,5 @@ PyPDF2
 flask-sqlalchemy
 pymysql
 jsonpickle
+Flask-JWT
+flask-jwt-extended
