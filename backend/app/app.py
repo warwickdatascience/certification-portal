@@ -1,5 +1,6 @@
 import time
 import os
+import random
 
 from flask import (
     Flask,
@@ -61,7 +62,7 @@ app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 jwt = JWTManager(app)
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@db:3306/certificate_portal"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://root:{os.environ['SQL_ROOT_PASSWORD']}@db:3306/certificate_portal"
 
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
@@ -104,6 +105,10 @@ class User(db.Model):
     password = db.Column(db.BLOB)
     salt = db.Column(db.BLOB)
 
+@app.route('/')
+def home():
+    return redirect("https://www.wdss.io/")
+
 
 @app.route('/token/auth', methods=['GET', 'POST'])
 def login():
@@ -136,7 +141,7 @@ def login():
             refresh_token = create_refresh_token(
                 identity=dictToSend['username'])
             # Set the JWT cookies in the response
-            resp = jsonify({'login': True})
+            resp = jsonify({'login': True, 'access_token': access_token, 'refresh_token': refresh_token})
             set_access_cookies(resp, access_token)
             set_refresh_cookies(resp, refresh_token)
             return resp, 200
@@ -169,15 +174,7 @@ def logout():
     return resp, 200
 
 
-@app.route('/api/home', methods=['GET'])
-@jwt_required
-def home():
-    username = get_jwt_identity()
-    return jsonify({'hello': 'from {}'.format(username)}), 200
-
 # test the database connection through this route (for debugging)
-
-
 @app.route("/api/dbtest")
 @jwt_required
 def testdb():
@@ -207,7 +204,7 @@ def generate_pdf(name, mentor, course, details, cert_id):
     html_file = open('templates/certificate.html', 'w')
     html_file.write(outputText)
     html_file.close()
-
+    
     options = {
         "enable-local-file-access": None,
         "orientation": "Landscape",
@@ -217,17 +214,17 @@ def generate_pdf(name, mentor, course, details, cert_id):
         'margin-bottom': '0',
         'margin-left': '0',
     }
-
-    pdfkit.from_file('templates/certificate.html',
-                     f'static/certificates/{cert_id}.pdf', options=options)
+    dest = f'static/certificates/{cert_id}.pdf'
+    pdfkit.from_file('templates/certificate.html', dest, options=options)
+    
     infile = PdfFileReader(f'static/certificates/{cert_id}.pdf', 'rb')
     output = PdfFileWriter()
     p = infile.getPage(0)
     output.addPage(p)
-
+    
     with open(f'static/certificates/{cert_id}.pdf', 'wb') as f:
         output.write(f)
-
+  
 # CRUD endpoints
 
 
@@ -347,15 +344,13 @@ def crudTableId(table, iden):
 
 
 @app.route('/api/generate', methods=['GET', 'POST'])
-@jwt_required
+#@jwt_required
 def generate():
     if request.method == 'POST':
         if not request.json:
-            abort(400)
-        if request.form is not None:
-            student_id = request.form["student_id"]
-            mentor_id = request.form["mentor_id"]
-            course_id = request.form["course_id"]
+            student_id = request.form["student"]
+            mentor_id = request.form["mentor"]
+            course_id = request.form["course"]
         else:
             student_id = request.json["student_id"]
             mentor_id = request.json["mentor_id"]
@@ -375,7 +370,8 @@ def generate():
             'desc': request.json['desc']
         }
         '''
-        cert_id = str(uuid.uuid1())
+       # cert_id = str(uuid.uuid1())
+        cert_id = str(random.randint(00000000, 99999999))
         entry = Certification(
             student_id=student_id,
             course_id=course_id,
@@ -383,21 +379,21 @@ def generate():
             certification_code=cert_id,
             certification_date=datetime.date.today())
 
-        try:
-            db.session.add(entry)
-            db.session.commit()
+        #try:
+        db.session.add(entry)
+        db.session.commit()
 
-            generate_pdf(params['name'], params['mentor'],
+        generate_pdf(params['name'], params['mentor'],
                          params['course'], params['desc'], cert_id)
-            resp = jsonify(success=True)
-            return resp
-        except BaseException:
-            return "There was an issue creating your certificate"
+        resp = jsonify(cert_id=cert_id, success=True)
+        return resp
+        #except BaseException:
+        #    return f"There was an issue creating your certificate {params} {cert_id}"
     return render_template('generate.html')
 
 
 @app.route('/api/htmltemplate')
-@jwt_required
+#@jwt_required
 def htmltemplate():
     return render_template("htmltemplate.html")
 

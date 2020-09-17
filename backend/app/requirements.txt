@@ -1,6 +1,6 @@
 flask
 redis
-pdfkit
+pdfkit==0.6.0
 jinja2
 PyPDF2
 flask-sqlalchemy
