@@ -5,7 +5,7 @@ services:
     links:
       - db
     ports:
-      - "50000:5000"
+      - "127.0.0.1:50000:5000"
     environment:
       FLASK_ENV: development
     volumes:
@@ -14,7 +14,7 @@ services:
   db:
     image: mysql:5.7
     ports:
-      - "32000:3306"
+      - "127.0.0.1:32000:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
