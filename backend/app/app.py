@@ -33,7 +33,6 @@ from sqlalchemy.sql import text
 import pymysql
 import jsonpickle
 
-from users.user import User
 
 
 app = Flask(__name__)
@@ -110,13 +109,36 @@ class Certification(db.Model):
     certification_code = db.Column(db.String)
     certification_date = db.Column(db.DateTime)
 
+class User(db.Model):
+    __tablename__ = "user"
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String)
+    password = db.Column(db.BLOB)
+    salt = db.Column(db.BLOB)
+
 
 @app.route('/token/auth', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != 'user1' or request.form['password'] != 'abcxyz':
-            error = 'Invalid Credentials. Please try again.'
+        print(f'PASSWORD: {request.form["password"]}')
+        # get username and password from database
+        user = User.query.filter_by(username=request.form['username']).first()
+        username = user.username
+        password = user.password
+        salt = user.salt
+        # hash user password
+        entered_pass = request.form["password"]
+        key = hashlib.pbkdf2_hmac(
+            'sha256', # The hash digest algorithm for HMAC
+            entered_pass.encode('utf-8'), # Convert the password to bytes
+            salt, # Provide the salt
+            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+        )
+        
+        # compare the values
+        if request.form['username'] != username or key != password:
+            error = f'Invalid Credentials. Please try again.'
         else:
             dictToSend = {
                 'username': request.form['username'],
