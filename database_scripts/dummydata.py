@@ -1,11 +1,14 @@
 import mysql.connector 
 import os
 import hashlib
+from dotenv import load_dotenv
+
+load_dotenv()
 mydb = mysql.connector.connect(
   host="127.00.00.1",
   port="32000",
   user="root",
-  password="root"
+  password=os.environ["SQL_ROOT_PASSWORD"]
 )
 
 mycursor = mydb.cursor()
@@ -62,7 +65,7 @@ mydb.commit()
 
 # USERS
 sql = "INSERT INTO user (username, password, salt) VALUES (%s, %s, %s)"
-password = "admin"
+password = os.environ["ADMIN_PASSWORD"]
 salt = os.urandom(32)
 print(salt)
 key = hashlib.pbkdf2_hmac(
