@@ -7,9 +7,6 @@ flask-sqlalchemy
 pymysql
 jsonpickle
 requests
-<<<<<<< HEAD
-mysql-connector-python
-=======
 flask-jwt-extended
 mysql-connector-python
->>>>>>> f04cca916bce08d9719bcb36aa727427a1ae0a43
+
