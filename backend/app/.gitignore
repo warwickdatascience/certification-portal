@@ -1,2 +1,3 @@
 static/certificates/*
 __pycache__/
+.env

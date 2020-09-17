@@ -30,14 +30,15 @@ from os.path import isfile, join
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
+from dotenv import load_dotenv
 import pymysql
 import jsonpickle
 
 
-
+load_dotenv()
 app = Flask(__name__)
 app.debug = True
-app.config['SECRET_KEY'] = 'super-secret' # need to change to os.environ.get from envfile
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 
@@ -60,19 +61,6 @@ app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 jwt = JWTManager(app)
 
 
-'''
-FOR LOCAL TESTING ONLY
-
-# name of the database
-db_name = "certificate_portal.db"
-
-# add config variables for SQL connection
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_name
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
-'''
-
-
-#app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://cert_app:79LgsdC8GFjD$%ksn6Vz@localhost:3306/certificate_database"
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@db:3306/certificate_portal"
 
 # the variable to be used for all SQLAlchemy commands
