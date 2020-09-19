@@ -114,14 +114,20 @@ def home():
 def login():
     error = None
     if request.method == 'POST':
-        print(f'PASSWORD: {request.form["password"]}')
+        # hash user password
+        if not request.json:
+            entered_username = request.form["username"]
+            entered_pass = request.form["password"]
+        else:
+            entered_username = request.json["username"]
+            entered_pass = request.json["password"]
+
         # get username and password from database
-        user = User.query.filter_by(username=request.form['username']).first()
+        user = User.query.filter_by(username=entered_username).first()
         username = user.username
         password = user.password
         salt = user.salt
-        # hash user password
-        entered_pass = request.form["password"]
+
         key = hashlib.pbkdf2_hmac(
             'sha256', # The hash digest algorithm for HMAC
             entered_pass.encode('utf-8'), # Convert the password to bytes
@@ -130,12 +136,12 @@ def login():
         )
         
         # compare the values
-        if request.form['username'] != username or key != password:
+        if entered_username != username or key != password:
             error = f'Invalid Credentials. Please try again.'
         else:
             dictToSend = {
-                'username': request.form['username'],
-                'password': request.form['password']
+                'username': entered_username,
+                'password': entered_pass
             }
             access_token = create_access_token(identity=dictToSend['username'])
             refresh_token = create_refresh_token(
@@ -344,7 +350,7 @@ def crudTableId(table, iden):
 
 
 @app.route('/api/generate', methods=['GET', 'POST'])
-#@jwt_required
+@jwt_required
 def generate():
     if request.method == 'POST':
         if not request.json:
@@ -379,21 +385,21 @@ def generate():
             certification_code=cert_id,
             certification_date=datetime.date.today())
 
-        #try:
-        db.session.add(entry)
-        db.session.commit()
+        try:
+            db.session.add(entry)
+            db.session.commit()
 
-        generate_pdf(params['name'], params['mentor'],
+            generate_pdf(params['name'], params['mentor'],
                          params['course'], params['desc'], cert_id)
-        resp = jsonify(cert_id=cert_id, success=True)
-        return resp
-        #except BaseException:
-        #    return f"There was an issue creating your certificate {params} {cert_id}"
+            resp = jsonify(cert_id=cert_id, success=True)
+            return resp
+        except BaseException:
+            return f"There was an issue creating your certificate {params} {cert_id}"
     return render_template('generate.html')
 
 
 @app.route('/api/htmltemplate')
-#@jwt_required
+@jwt_required
 def htmltemplate():
     return render_template("htmltemplate.html")
 
