@@ -424,10 +424,6 @@ def certificate(iden):
             filename=f"certificates/{iden}.pdf"),
         courseName=courseName,
         studentName=studentName)
-    # return send_file('static/certificates/certificate-docker2.pdf', attachment_filename=f'{iden}.pdf')
-    # with open('/code/certificate-docker.pdf', 'rb') as static_file:
-    # return send_file(static_file, attachment_filename='eew324432io328dh.pdf')
-#
 
 
 if __name__ == '__main__':
