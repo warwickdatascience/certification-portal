@@ -43,7 +43,7 @@ for x in mycursor:
 
 # MENTORS
 sql = "INSERT INTO mentor (mentor_fname, mentor_lname) VALUES (%s, %s)"
-val = ("Sheldon", "Bazinga")
+val = ("John", "Doe")
 mycursor.execute(sql, val)
 val = ("Mark", "Corrigan")
 mycursor.execute(sql, val)
@@ -51,7 +51,7 @@ mydb.commit()
 
 # STUDENTS
 sql = "INSERT INTO student (student_fname, student_lname) VALUES (%s, %s)"
-val = ("Jeff", "Bezos")
+val = ("Ann", "Example")
 mycursor.execute(sql, val)
 val = ("Mark", "Zuckerberg")
 mycursor.execute(sql, val)
@@ -59,7 +59,7 @@ mydb.commit()
 
 # COURSES
 sql = "INSERT INTO course (course_name, course_details) VALUES (%s, %s)"
-val = ("Intro to Python", "Intro to python for data science")
+val = ("Introduction to Python", "16-Hour Assessed Course")
 mycursor.execute(sql, val)
 mydb.commit()
 
