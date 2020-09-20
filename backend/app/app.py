@@ -412,8 +412,18 @@ def preview():
 
 @app.route('/certificate/<iden>')
 def certificate(iden):
-    certInfo = Certification.query.filter_by(certification_code=iden).first()
+    if iden == "00000000":
+        return render_template(
+                "cert.html",
+                iden=url_for(
+                    'static',
+                    filename=f"certificates/{iden}.pdf"),
+                courseName=None,
+                studentName=None)
 
+    certInfo = Certification.query.filter_by(certification_code=iden).first()
+    if certInfo is None:
+        return "<p> Certificate does not exist or was not found. If you believe that this is a mistake, please email hello@warwickdatascience.com </p>"
     courseName = Course.query.get_or_404(certInfo.course_id).course_name
     studentName = f"{Student.query.get_or_404(certInfo.student_id).student_fname} {Student.query.get_or_404(certInfo.student_id).student_lname}"
 

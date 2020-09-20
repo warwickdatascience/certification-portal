@@ -37,7 +37,7 @@ mycursor.execute(
 mycursor.execute("CREATE TABLE student(student_id INT PRIMARY KEY AUTO_INCREMENT, student_fname NVARCHAR(30), student_lname NVARCHAR(30), student_email NVARCHAR(40))")
 mycursor.execute(
     "CREATE TABLE course(course_id INT PRIMARY KEY AUTO_INCREMENT, course_name NVARCHAR(30), course_details NVARCHAR(200))")
-mycursor.execute("CREATE TABLE certification(certification_id INT PRIMARY KEY AUTO_INCREMENT, student_id INT, mentor_id INT, course_id INT, certification_code VARCHAR(100) UNIQUE, certification_date DATETIME, FOREIGN KEY(student_id) REFERENCES student(student_id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY(mentor_id) REFERENCES mentor(mentor_id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY(course_id) REFERENCES course(course_id) ON UPDATE CASCADE ON DELETE CASCADE)")
+mycursor.execute("CREATE TABLE certification(certification_id INT PRIMARY KEY AUTO_INCREMENT, student_id INT, mentor_id INT, course_id INT, certification_code NVARCHAR(100) UNIQUE, certification_date DATETIME, FOREIGN KEY(student_id) REFERENCES student(student_id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY(mentor_id) REFERENCES mentor(mentor_id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY(course_id) REFERENCES course(course_id) ON UPDATE CASCADE ON DELETE CASCADE)")
 mycursor.execute(
     "CREATE TABLE user(user_id INT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(30), password BLOB, salt BLOB)")
 mycursor.execute("SHOW TABLES")
