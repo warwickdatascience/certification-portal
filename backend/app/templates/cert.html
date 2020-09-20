@@ -2,16 +2,15 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<link rel="icon" href="static/img/logo-round.png">
+		<link rel="icon" href="{{ url_for('static', filename='logo-round.png') }}">
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-		<meta property="og:title" content="{{ courseName }} - Certificate of Accomplishment">
+		<meta property="og:title" content="{{ courseName }}">
 		<meta property="og:description" content="{{ studentName }} has completed Warwick Data Science Society's course, {{ courseName }}">
-		<meta property="og:Image" content="{{ url_for('static', filename='certificate_og_image.png') }}">
+		<meta property="og:image" content="{{ url_for('static', filename='certificate_og_image.png') }}"> 
 	</head>
 	<body>
-    <h1>TEST</h1>
     <div style="width:600px">
 		<iframe src="{{ iden }}" style="position: fixed; top: 0px; bottom: 0px; right: 0px; width: 100%; border: none; margin: 0; padding: 0; overflow: hidden; z-index: 999999; height: 100%;"></iframe>
         </div>
