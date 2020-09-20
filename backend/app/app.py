@@ -419,7 +419,8 @@ def certificate(iden):
                     'static',
                     filename=f"certificates/{iden}.pdf"),
                 courseName=None,
-                studentName=None)
+                studentName=None,
+                cert_id=iden)
 
     certInfo = Certification.query.filter_by(certification_code=iden).first()
     if certInfo is None:
@@ -433,7 +434,9 @@ def certificate(iden):
             'static',
             filename=f"certificates/{iden}.pdf"),
         courseName=courseName,
-        studentName=studentName)
+        studentName=studentName,
+        cert_id=iden)
+
 
 
 if __name__ == '__main__':
