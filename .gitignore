@@ -1,2 +1,6 @@
-static/certificates/*
+backend/app/static/certificates/*
 __pycache__/
+venv/
+database_scripts/.env
+backend/.env
+backend/app/.env

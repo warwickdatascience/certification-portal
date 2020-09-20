@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="icon" href="{{ url_for('static', filename='logo-round.png') }}">
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<meta property="og:title" content="{{ courseName }}">
+		<meta property="og:description" content="{{ studentName }} has completed Warwick Data Science Society's course, {{ courseName }}">
+		<meta property="og:image" content="{{ url_for('static', filename='certificate_og_image.png') }}"> 
+	</head>
+	<body>
+		<a href="https://www.facebook.com/dialog/feed?app_id=334321624476322&display=page&link=https%3A%2F%2Fcert.wdss.io%2Fcertificate%2F{{ cert_id }}&redirect_uri=https%3A%2F%2Fcert.wdss.io%2Fcertificate%2F{{ cert_id }}">
+		<img src="{{ url_for('static', filename='fb.png') }}" alt="FB" style="position:absolute; z-index:1; bottom: 8px; height:40px">
+		</a>
+
+		<a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcert.wdss.io%2Fcertificate%2F{{ cert_id }}">
+		<img src="{{ url_for('static', filename='linkedin.png') }}" alt="LN" style="position:absolute; z-index:1; bottom: 8px; left:60px; height: 40px">
+		</a>
+  	<div style="width:100%">
+	    <embed src="{{ iden }}" style="position: fixed; top: 0px; bottom: 0px; right: 0px; width: 100%; border: none; margin: 0; padding: 0; overflow: hidden; z-index: 0; height: 100%;"></embed>
+	</div>
+	</body>
+</html>
