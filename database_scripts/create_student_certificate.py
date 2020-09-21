@@ -141,9 +141,9 @@ def create_certificate(jwt):
 jwt = get_jwt_token()
 
 print("CERTIFICATE GENERATOR")
-x = input("preload? [y/n]")
-if x == "y":
-    pre_load_mentors()
-    pre_load_courses()
+#x = input("preload? [y/n]")
+#if x == "y":
+#    pre_load_mentors()
+#    pre_load_courses()
 while(input("add cert [y/n]: ") == "y"):
     create_certificate(jwt)

@@ -57,13 +57,12 @@ app.config['JWT_REFRESH_COOKIE_PATH'] = '/token/refresh'
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False
 
 # Set the secret key to sign the JWTs with
-app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
+app.config['JWT_SECRET_KEY'] = 'Jiowaj213eddDw'  # Change this!
 
 jwt = JWTManager(app)
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://root:{os.environ['SQL_ROOT_PASSWORD']}@db:3306/certificate_portal"
-
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
 
