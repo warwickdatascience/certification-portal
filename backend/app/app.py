@@ -79,6 +79,7 @@ class Student(db.Model):
     student_id = db.Column(db.Integer, primary_key=True)
     student_fname = db.Column(db.String)
     student_lname = db.Column(db.String)
+    student_email = db.Column(db.String)
 
 
 class Course(db.Model):
@@ -112,8 +113,9 @@ def home():
 @app.route('/token/auth', methods=['GET', 'POST'])
 def login():
     error = None
+    
     if request.method == 'POST':
-        # hash user password
+        # hash user password\
         if not request.json:
             entered_username = request.form["username"]
             entered_pass = request.form["password"]
@@ -149,6 +151,7 @@ def login():
             resp = jsonify({'login': True, 'access_token': access_token, 'refresh_token': refresh_token})
             set_access_cookies(resp, access_token)
             set_refresh_cookies(resp, refresh_token)
+            
             return resp, 200
     return render_template('login.html', error=error)
 
@@ -394,7 +397,13 @@ def generate():
             return resp
         except BaseException:
             return f"There was an issue creating your certificate {params} {cert_id}"
-    return render_template('generate.html')
+    mentors = Mentor.query.all()
+    courses = Course.query.all()
+    students = Student.query.all()
+    return render_template('generate.html',
+            mentors=mentors,
+            courses=courses,
+            students=students)
 
 
 @app.route('/api/htmltemplate')

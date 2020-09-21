@@ -19,10 +19,11 @@ mycursor.execute("USE certificate_portal")
 
 
 def get_jwt_token():
-    # post to https://cert.wdss.io/token/auth
-    url = "https://cert.wdss.io/token/auth"
+    # post to http://127.0.0.1:50000/token/auth
+    url = "http://127.0.0.1:50000/token/auth"
     data = {'username': 'admin', 'password': os.environ['ADMIN_PASSWORD']}
     x = requests.post(url, json=data)
+    print(x.text)
     return x.json()['access_token']
 
 # MENTORS
@@ -66,7 +67,7 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
     #sql = "INSERT INTO certificate (student_id, mentor_id, course_id, cert_id) VALUES (%s %s %s %s)"
     #val = (student_id, mentor_id, course_id, cert_id)
     #mycursor.execute(sql, val)
-    url = "https://cert.wdss.io/api/generate"
+    url = "http://127.0.0.1:50000/api/generate"
     headers = {"Authorization": f'JWT {access_token}',
                "Cookie": f'access_token_cookie={access_token}'}
     data = {
@@ -74,6 +75,8 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
         "mentor_id": mentor_id,
         "course_id": course_id}
     x = requests.post(url, json=data, headers=headers)
+
+    print(x.text)
     return x.json()['cert_id']
 
 
@@ -141,9 +144,9 @@ def create_certificate(jwt):
 jwt = get_jwt_token()
 
 print("CERTIFICATE GENERATOR")
-#x = input("preload? [y/n]")
-#if x == "y":
-#    pre_load_mentors()
-#    pre_load_courses()
+x = input("preload? [y/n]")
+if x == "y":
+    pre_load_mentors()
+    pre_load_courses()
 while(input("add cert [y/n]: ") == "y"):
     create_certificate(jwt)
