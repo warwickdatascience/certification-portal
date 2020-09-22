@@ -222,16 +222,16 @@ def generate_pdf(name, mentor, course, details, cert_id):
         'margin-bottom': '0',
         'margin-left': '0',
     }
-    dest = f'static/certificates/{cert_id}.pdf'
     try:
+        dest = f'static/certificates/wdss_cert_{cert_id}.pdf'
         pdfkit.from_file('templates/certificate.html', dest, options=options)
     
-        infile = PdfFileReader(f'static/certificates/{cert_id}.pdf', 'rb')
+        infile = PdfFileReader(f'static/certificates/wdss_cert_{cert_id}.pdf', 'rb')
         output = PdfFileWriter()
         p = infile.getPage(0)
         output.addPage(p)
         
-        with open(f'static/certificates/{cert_id}.pdf', 'wb') as f:
+        with open(f'static/certificates/wdss_cert_{cert_id}.pdf', 'wb') as f:
             output.write(f)
     except Exception as e:
         return str(e)
@@ -391,7 +391,7 @@ def generate():
         }
         '''
        # cert_id = str(uuid.uuid1())
-        cert_id = str(random.randint(00000000, 99999999))
+        cert_id = str(random.randint(00000000, 99999999)).zfill(8)
         entry = Certification(
             student_id=student_id,
             course_id=course_id,
@@ -437,8 +437,8 @@ def certificate(iden):
                 "cert.html",
                 iden=url_for(
                     'static',
-                    filename=f"certificates/{iden}.pdf"),
-                courseName="Introduction to Pyton",
+                    filename=f"certificates/wdss_cert_{iden}.pdf"),
+                courseName="Introduction to Python",
                 studentName="Ann Example",
                 cert_id=iden)
 
@@ -452,7 +452,7 @@ def certificate(iden):
         "cert.html",
         iden=url_for(
             'static',
-            filename=f"certificates/{iden}.pdf"),
+            filename=f"certificates/wdss_cert_{iden}.pdf"),
         courseName=courseName,
         studentName=studentName,
         cert_id=iden)

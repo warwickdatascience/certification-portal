@@ -29,14 +29,6 @@ def get_jwt_token():
 # MENTORS
 
 
-def add_mentor(fname, lname):
-    # check if mentor exists
-    # if not exist
-    sql = "INSERT INTO mentor (mentor_fname, mentor_lname) VALUES (%s, %s)"
-    val = (fname, lname)
-    mycursor.execute(sql, val)
-    mydb.commit()
-
 def add_mentor_api(access_token, fname, lname):
     url = "http://127.0.0.1:50000/api/crud/mentor"
     headers = {"Authorization": f'JWT {access_token}',
@@ -46,16 +38,6 @@ def add_mentor_api(access_token, fname, lname):
     request = requests.post(url, json=data, headers=headers)        
     
 # STUDENTS
-def add_student(fname, lname, email=None):
-    if email is not None:
-        sql = "INSERT INTO student (student_fname, student_lname, student_email) VALUES (%s, %s, %s)"
-        val = (fname, lname, email)
-    else:
-        sql = "INSERT INTO student (student_fname, student_lname) VALUES (%s, %s)"
-        val = (fname, lname)
-    mycursor.execute(sql, val)
-    mydb.commit()
-
 def add_student_api(access_token, fname, lname, email):
     url = "http://127.0.0.1:50000/api/crud/student"
     headers = {"Authorization": f'JWT {access_token}',
@@ -65,15 +47,8 @@ def add_student_api(access_token, fname, lname, email):
     response = requests.post(url, json=data, headers=headers)        
     
     return response.json()['id']
+
 # COURSES
-
-
-def add_course(course_name, course_details):
-    sql = "INSERT INTO course (course_name, course_details) VALUES (%s, %s)"
-    val = (course_name, course_details)
-    mycursor.execute(sql, val)
-    mydb.commit()
-
 def add_course_api(access_token, course_name, course_details):
     url = "http://127.0.0.1:50000/api/crud/course"
     headers = {"Authorization": f'JWT {access_token}',
@@ -83,10 +58,6 @@ def add_course_api(access_token, course_name, course_details):
     request = requests.post(url, json=data, headers=headers)        
 
 def add_certificate(student_id, mentor_id, course_id, access_token):
-    # cert_id = random.randint(0000000, 99999999)i
-    #sql = "INSERT INTO certificate (student_id, mentor_id, course_id, cert_id) VALUES (%s %s %s %s)"
-    #val = (student_id, mentor_id, course_id, cert_id)
-    #mycursor.execute(sql, val)
     url = "http://127.0.0.1:50000/api/generate"
     headers = {"Authorization": f'JWT {access_token}',
                "Cookie": f'access_token_cookie={access_token}'}
@@ -96,7 +67,6 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
         "course_id": course_id}
     x = requests.post(url, json=data, headers=headers)
 
-    print(x.text)
     return x.json()['cert_id']
 
 
@@ -187,7 +157,7 @@ def print_all_course(access_token):
             "Cookie": f'access_token_cookie={access_token}'}
     request = requests.get(url, headers=headers)        
     for course in request.json():
-        print(f"{course['course_id']} {course['course_name']}")
+        print(f"{course['course_id']} {course['course_name']} {course['course_details']}")
 
 
 def create_certificate_api(jwt):
@@ -216,15 +186,10 @@ def create_certificate_api(jwt):
 
     print_all_course(jwt)
     course_id = int(input("COURSE ID: "))
-    print(add_certificate(student_id, mentor_id, course_id, jwt))
+    print(f"cert id: {add_certificate(student_id, mentor_id, course_id, jwt)}")
 
 
 jwt = get_jwt_token()
-# create_certificate_api(jwt)
-# add_student_api(jwt, "alex", "test", "a.test@gmail.com")
-# add_course_api(jwt, "more python", "test")
-# add_mentor_api(jwt, "Mr", "Job")
-
 
 
 print("CERTIFICATE GENERATOR")
@@ -233,4 +198,4 @@ if x == "y":
     pre_load_mentors()
     pre_load_courses()
 while(input("add cert [y/n]: ") == "y"):
-    create_certificate(jwt)
+    create_certificate_api(jwt)
