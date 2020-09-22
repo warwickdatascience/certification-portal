@@ -79,6 +79,7 @@ class Student(db.Model):
     student_id = db.Column(db.Integer, primary_key=True)
     student_fname = db.Column(db.String)
     student_lname = db.Column(db.String)
+    student_email = db.Column(db.String)
 
 
 class Course(db.Model):
@@ -112,8 +113,9 @@ def home():
 @app.route('/token/auth', methods=['GET', 'POST'])
 def login():
     error = None
+    
     if request.method == 'POST':
-        # hash user password
+        # hash user password\
         if not request.json:
             entered_username = request.form["username"]
             entered_pass = request.form["password"]
@@ -149,6 +151,7 @@ def login():
             resp = jsonify({'login': True, 'access_token': access_token, 'refresh_token': refresh_token})
             set_access_cookies(resp, access_token)
             set_refresh_cookies(resp, refresh_token)
+            
             return resp, 200
     return render_template('login.html', error=error)
 
@@ -220,16 +223,18 @@ def generate_pdf(name, mentor, course, details, cert_id):
         'margin-left': '0',
     }
     dest = f'static/certificates/{cert_id}.pdf'
-    pdfkit.from_file('templates/certificate.html', dest, options=options)
+    try:
+        pdfkit.from_file('templates/certificate.html', dest, options=options)
     
-    infile = PdfFileReader(f'static/certificates/{cert_id}.pdf', 'rb')
-    output = PdfFileWriter()
-    p = infile.getPage(0)
-    output.addPage(p)
-    
-    with open(f'static/certificates/{cert_id}.pdf', 'wb') as f:
-        output.write(f)
-  
+        infile = PdfFileReader(f'static/certificates/{cert_id}.pdf', 'rb')
+        output = PdfFileWriter()
+        p = infile.getPage(0)
+        output.addPage(p)
+        
+        with open(f'static/certificates/{cert_id}.pdf', 'wb') as f:
+            output.write(f)
+    except Exception as e:
+        return str(e)
 # CRUD endpoints
 
 
@@ -246,7 +251,8 @@ def crudTable(table):
         elif table == "student":
             entry = Student(
                 student_fname=request.json["student_fname"],
-                student_lname=request.json["student_lname"])
+                student_lname=request.json["student_lname"],
+                student_email=request.json["student_email"])
         elif table == "course":
             entry = Course(
                 course_name=request.json["course_name"],
@@ -264,7 +270,16 @@ def crudTable(table):
         try:
             db.session.add(entry)
             db.session.commit()
-            return redirect(request.url)
+            if table == "mentor":
+                entry_id = entry.mentor_id
+            elif table == "student":
+                entry_id = entry.student_id
+            elif table == "course":
+                entry_id = entry.course_id
+            elif table == "certification":
+                entry_id = entry.certification_id
+            resp = jsonify(success=True, id=entry_id)
+            return resp
         except Exception as e:
             return str(e)
 
@@ -388,13 +403,19 @@ def generate():
             db.session.add(entry)
             db.session.commit()
 
-            generate_pdf(params['name'], params['mentor'],
+            x = generate_pdf(params['name'], params['mentor'],
                          params['course'], params['desc'], cert_id)
-            resp = jsonify(cert_id=cert_id, success=True)
+            resp = jsonify(cert_id=cert_id, success=True, msg=x)
             return resp
         except BaseException:
             return f"There was an issue creating your certificate {params} {cert_id}"
-    return render_template('generate.html')
+    mentors = Mentor.query.all()
+    courses = Course.query.all()
+    students = Student.query.all()
+    return render_template('generate.html',
+            mentors=mentors,
+            courses=courses,
+            students=students)
 
 
 @app.route('/api/htmltemplate')
@@ -417,8 +438,8 @@ def certificate(iden):
                 iden=url_for(
                     'static',
                     filename=f"certificates/{iden}.pdf"),
-                courseName=None,
-                studentName=None,
+                courseName="Introduction to Pyton",
+                studentName="Ann Example",
                 cert_id=iden)
 
     certInfo = Certification.query.filter_by(certification_code=iden).first()
