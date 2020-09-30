@@ -390,7 +390,6 @@ def generate():
             'desc': request.json['desc']
         }
         '''
-       # cert_id = str(uuid.uuid1())
         cert_id = str(random.randint(00000000, 99999999)).zfill(8)
         entry = Certification(
             student_id=student_id,
