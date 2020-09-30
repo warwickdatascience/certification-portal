@@ -1,26 +1,12 @@
-import mysql.connector
 import os
-import hashlib
 import random
 from dotenv import load_dotenv
 import requests
 
 load_dotenv()
 
-mydb = mysql.connector.connect(
-    host="127.00.00.1",
-    port="32000",
-    user="root",
-    password=os.environ["SQL_ROOT_PASSWORD"]
-)
-
-mycursor = mydb.cursor()
-mycursor.execute("USE certificate_portal")
-
-
 def get_jwt_token():
-    # post to http://127.0.0.1:50000/token/auth
-    url = "http://127.0.0.1:50000/token/auth"
+    url = "https://cert.wdss.io/token/auth"
     data = {'username': 'admin', 'password': os.environ['ADMIN_PASSWORD']}
     x = requests.post(url, json=data)
     
@@ -29,8 +15,16 @@ def get_jwt_token():
 # MENTORS
 
 
+def add_mentor(fname, lname):
+    # check if mentor exists
+    # if not exist
+    sql = "INSERT INTO mentor (mentor_fname, mentor_lname) VALUES (%s, %s)"
+    val = (fname, lname)
+    mycursor.execute(sql, val)
+    mydb.commit()
+
 def add_mentor_api(access_token, fname, lname):
-    url = "http://127.0.0.1:50000/api/crud/mentor"
+    url = "https://cert.wdss.io/api/crud/mentor"
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
 
@@ -38,8 +32,18 @@ def add_mentor_api(access_token, fname, lname):
     request = requests.post(url, json=data, headers=headers)        
     
 # STUDENTS
+def add_student(fname, lname, email=None):
+    if email is not None:
+        sql = "INSERT INTO student (student_fname, student_lname, student_email) VALUES (%s, %s, %s)"
+        val = (fname, lname, email)
+    else:
+        sql = "INSERT INTO student (student_fname, student_lname) VALUES (%s, %s)"
+        val = (fname, lname)
+    mycursor.execute(sql, val)
+    mydb.commit()
+
 def add_student_api(access_token, fname, lname, email):
-    url = "http://127.0.0.1:50000/api/crud/student"
+    url = "https://cert.wdss.io/api/crud/student"
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
 
@@ -47,10 +51,17 @@ def add_student_api(access_token, fname, lname, email):
     response = requests.post(url, json=data, headers=headers)        
     
     return response.json()['id']
-
 # COURSES
+
+
+def add_course(course_name, course_details):
+    sql = "INSERT INTO course (course_name, course_details) VALUES (%s, %s)"
+    val = (course_name, course_details)
+    mycursor.execute(sql, val)
+    mydb.commit()
+
 def add_course_api(access_token, course_name, course_details):
-    url = "http://127.0.0.1:50000/api/crud/course"
+    url = "https://cert.wdss.io/api/crud/course"
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
 
@@ -58,7 +69,7 @@ def add_course_api(access_token, course_name, course_details):
     request = requests.post(url, json=data, headers=headers)        
 
 def add_certificate(student_id, mentor_id, course_id, access_token):
-    url = "http://127.0.0.1:50000/api/certificate/generate"
+    url = "https://cert.wdss.io/api/generate"
     headers = {"Authorization": f'JWT {access_token}',
                "Cookie": f'access_token_cookie={access_token}'}
     data = {
@@ -67,29 +78,8 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
         "course_id": course_id}
     x = requests.post(url, json=data, headers=headers)
 
+    print(x.text)
     return x.json()['cert_id']
-
-
-def pre_load_mentors():
-    add_mentor_api(jwt, "Tim", "Hargreaves")
-    add_mentor_api(jwt, "Brandusa", "Draghici")
-    add_mentor_api(jwt, "Ciarán", "Evans")
-    add_mentor_api(jwt, "Farhan", "Tariq")
-    add_mentor_api(jwt, "Gabriel", "Musker")
-    add_mentor_api(jwt, "Horia", "Druliac")
-    add_mentor_api(jwt, "Janique", "Krasnowska")
-    add_mentor_api(jwt, "Lucy", "McArthur")
-    add_mentor_api(jwt, "Martin", "Smit")
-    add_mentor_api(jwt, "Raul-Octavian", "Rus")
-    add_mentor_api(jwt, "Yasser", "Qureshi")
-
-
-def pre_load_courses():
-    add_course_api(jwt, "Introduction to Python", "16-hour Asssesed Course")
-    add_course_api(jwt, 
-        "Introduction to Python",
-        "16-hour Asssesed Course w/ Additional Pythonic Programming Foundations")
-    add_course_api(jwt, "Into the Tidyverse", "15-hour Asssesed Course")
 
 
 def create_certificate(jwt):
@@ -131,7 +121,7 @@ def create_certificate(jwt):
     print(add_certificate(student_id, mentor_id, course_id, jwt))
 
 def existing_students(access_token, fname, lname):
-    url = "http://127.0.0.1:50000/api/crud/student"
+    url = "https://cert.wdss.io/api/crud/student"
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
     request = requests.get(url, headers=headers)        
@@ -144,7 +134,7 @@ def existing_students(access_token, fname, lname):
 
 
 def print_all_mentor(access_token):
-    url = "http://127.0.0.1:50000/api/crud/mentor"
+    url = "https://cert.wdss.io/api/crud/mentor"
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
     request = requests.get(url, headers=headers)        
@@ -152,7 +142,7 @@ def print_all_mentor(access_token):
         print(f"{mentor['mentor_id']} {mentor['mentor_fname']} {mentor['mentor_lname']}")
 
 def print_all_course(access_token):
-    url = "http://127.0.0.1:50000/api/crud/course"
+    url = "https://cert.wdss.io/api/crud/course"
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
     request = requests.get(url, headers=headers)        
@@ -186,16 +176,12 @@ def create_certificate_api(jwt):
 
     print_all_course(jwt)
     course_id = int(input("COURSE ID: "))
-    print(f"cert id: {add_certificate(student_id, mentor_id, course_id, jwt)}")
+    print(add_certificate(student_id, mentor_id, course_id, jwt))
 
 
 jwt = get_jwt_token()
 
 
 print("CERTIFICATE GENERATOR")
-x = input("preload? [y/n]")
-if x == "y":
-    pre_load_mentors()
-    pre_load_courses()
 while(input("add cert [y/n]: ") == "y"):
     create_certificate_api(jwt)
