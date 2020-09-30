@@ -26,7 +26,8 @@ A script called 'create_student_certificate.py' has been made to interact with t
 	- /token/remove
 	- /api/crud/\<table>
 	- /api/crud/\<table>/\<iden>
-	- /api/generate	
+	- /api/certificate/generate
+	- /api/certificate/update	
 - Not authenticated
 	- /certificate/\<iden>
 
