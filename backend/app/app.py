@@ -208,7 +208,7 @@ def generate_pdf(name, mentor, course, details, cert_id):
         additional_course_details=details,
         date=datetime.date.today(),
         mentor=mentor)
-
+    
     html_file = open('templates/certificate.html', 'w')
     html_file.write(outputText)
     html_file.close()
@@ -235,6 +235,7 @@ def generate_pdf(name, mentor, course, details, cert_id):
             output.write(f)
     except Exception as e:
         return str(e)
+    return True
 # CRUD endpoints
 
 
@@ -362,8 +363,57 @@ def crudTableId(table, iden):
 
     return jsonpickle.encode(field)
 
+@app.route('/api/certificate/update', methods=['GET','POST'])
+@jwt_required
+def update():
+    if request.method == "POST":
+        cert_id = request.json["certificate_code"]
+        cert_curr = Certification.query.filter_by(certification_code=cert_id).first_or_404()
+        
+        if "student_id" in request.json:
+            student_id = request.json["student_id"]
+        else:
+            student_id = cert_curr.student_id
+        
+        if "mentor_id" in request.json:
+            mentor_id = request.json["mentor_id"]
+        else:
+            mentor_id = cert_curr.mentor_id            
+        
+        if "course_id" in request.json:
+            course_id = request.json["course_id"]
+        else:
+            course_id = cert_curr.course_id
+        
+        params = {
+            "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
+            "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
+            "course": Course.query.get_or_404(course_id).course_name,
+            "desc": Course.query.get_or_404(course_id).course_details,
+        }
+        
 
-@app.route('/api/generate', methods=['GET', 'POST'])
+        
+        try:
+            cert = Certification.query.filter_by(certification_code=cert_id).update(dict(student_id=student_id, course_id=course_id, mentor_id=mentor_id))
+            db.session.commit()
+            
+            x = generate_pdf(params['name'], params['mentor'],
+                            params['course'], params['desc'], cert_id)
+            
+            resp = jsonify(cert_id=cert_id, success=True, msg=x)
+            return resp
+        except BaseException:
+            return f"There was an issue updating your certificate {params} {cert_id}"
+    mentors = Mentor.query.all()
+    courses = Course.query.all()
+    students = Student.query.all()
+    return render_template('generate.html',
+            mentors=mentors,
+            courses=courses,
+            students=students)
+
+@app.route('/api/certificate/generate', methods=['GET', 'POST'])
 @jwt_required
 def generate():
     if request.method == 'POST':
@@ -380,16 +430,10 @@ def generate():
             "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
             "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
             "course": Course.query.get_or_404(course_id).course_name,
-            "desc": Course.query.get_or_404(course_id).course_details}
-
-        '''
-        params = {
-            'name': request.json['name'],
-            'mentor': request.json['mentor'],
-            'course': request.json['course'],
-            'desc': request.json['desc']
+            "desc": Course.query.get_or_404(course_id).course_details
         }
-        '''
+
+
         cert_id = str(random.randint(00000000, 99999999)).zfill(8)
         entry = Certification(
             student_id=student_id,
