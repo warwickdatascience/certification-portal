@@ -18,7 +18,7 @@ from flask_jwt_extended import (
     get_jwt_identity, set_access_cookies,
     set_refresh_cookies, unset_jwt_cookies
 )
-from flask_login import LoginManager, UserMixin , current_user, login_user, login_required, logout_user
+from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
 from werkzeug.security import safe_str_cmp
 import requests
 import jinja2
@@ -67,6 +67,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://root:{os.environ['SQL_
 db = SQLAlchemy(app)
 login_manager.init_app(app)
 
+
 class Mentor(UserMixin, db.Model):
     __tablename__ = "mentor"
     mentor_id = db.Column(db.Integer, primary_key=True)
@@ -75,8 +76,10 @@ class Mentor(UserMixin, db.Model):
     mentor_email = db.Column(db.String)
     password = db.Column(db.BLOB)
     salt = db.Column(db.BLOB)
+
     def get_id(self):
         return (self.mentor_id)
+
 
 class Student(db.Model):
     __tablename__ = "student"
@@ -102,6 +105,7 @@ class Certification(db.Model):
     certification_code = db.Column(db.String)
     certification_date = db.Column(db.DateTime)
 
+
 class User(db.Model):
     __tablename__ = "user"
     user_id = db.Column(db.Integer, primary_key=True)
@@ -109,10 +113,11 @@ class User(db.Model):
     password = db.Column(db.BLOB)
     salt = db.Column(db.BLOB)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return Mentor.query.get(int(user_id))
-    
+
 
 @app.route('/')
 def home():
@@ -122,7 +127,7 @@ def home():
 @app.route('/token/auth', methods=['GET', 'POST'])
 def auth():
     error = None
-    
+
     if request.method == 'POST':
         # hash user password\
         if not request.json:
@@ -139,12 +144,12 @@ def auth():
         salt = user.salt
 
         key = hashlib.pbkdf2_hmac(
-            'sha256', # The hash digest algorithm for HMAC
-            entered_pass.encode('utf-8'), # Convert the password to bytes
-            salt, # Provide the salt
-            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+            'sha256',  # The hash digest algorithm for HMAC
+            entered_pass.encode('utf-8'),  # Convert the password to bytes
+            salt,  # Provide the salt
+            100000  # It is recommended to use at least 100,000 iterations of SHA-256
         )
-        
+
         # compare the values
         if entered_username != username or key != password:
             error = f'Invalid Credentials. Please try again.'
@@ -157,10 +162,12 @@ def auth():
             refresh_token = create_refresh_token(
                 identity=dictToSend['username'])
             # Set the JWT cookies in the response
-            resp = jsonify({'login': True, 'access_token': access_token, 'refresh_token': refresh_token})
+            resp = jsonify({'login': True,
+                            'access_token': access_token,
+                            'refresh_token': refresh_token})
             set_access_cookies(resp, access_token)
             set_refresh_cookies(resp, refresh_token)
-            
+
             return resp, 200
     return render_template('login.html', error=error)
 
@@ -170,6 +177,7 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
 @app.route('/changepassword', methods=['GET', 'POST'])
 def change_password():
     error = None
@@ -177,30 +185,29 @@ def change_password():
         old_password = request.form['old_password']
         new_password = request.form['new_password']
         confirm_password = request.form['confirm_password']
-        
-        
+
         user = Mentor.query.get_or_404(current_user.mentor_id)
         salt = user.salt
         new_salt = os.urandom(32)
 
         key = hashlib.pbkdf2_hmac(
-            'sha256', # The hash digest algorithm for HMAC
-            old_password.encode('utf-8'), # Convert the password to bytes
-            salt, # Provide the salt
-            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+            'sha256',  # The hash digest algorithm for HMAC
+            old_password.encode('utf-8'),  # Convert the password to bytes
+            salt,  # Provide the salt
+            100000  # It is recommended to use at least 100,000 iterations of SHA-256
         )
-        
+
         new_key = hashlib.pbkdf2_hmac(
-            'sha256', # The hash digest algorithm for HMAC
-            new_password.encode('utf-8'), # Convert the password to bytes
-            new_salt, # Provide the salt
-            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+            'sha256',  # The hash digest algorithm for HMAC
+            new_password.encode('utf-8'),  # Convert the password to bytes
+            new_salt,  # Provide the salt
+            100000  # It is recommended to use at least 100,000 iterations of SHA-256
         )
         confirm_key = hashlib.pbkdf2_hmac(
-            'sha256', # The hash digest algorithm for HMAC
-            confirm_password.encode('utf-8'), # Convert the password to bytes
-            new_salt, # Provide the salt
-            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+            'sha256',  # The hash digest algorithm for HMAC
+            confirm_password.encode('utf-8'),  # Convert the password to bytes
+            new_salt,  # Provide the salt
+            100000  # It is recommended to use at least 100,000 iterations of SHA-256
         )
         # compare the values
         if user.password != key:
@@ -212,21 +219,23 @@ def change_password():
             user.salt = new_salt
             mentor = Mentor.query.filter_by(mentor_id=user.mentor_id).update(
                 dict(mentor_email='boop',
-                    password=new_key, 
+                     password=new_key,
                      salt=new_salt
-                    )
-                )
+                     )
+            )
             db.session.commit()
             error = 'Password updated'
 
     return render_template('changepass.html', error=error)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
         # get username and password from database
-        mentor = Mentor.query.filter_by(mentor_email=request.form['email']).first()
+        mentor = Mentor.query.filter_by(
+            mentor_email=request.form['email']).first()
         if mentor is None:
             error = f'Invalid Cssredentials. Please try again.{request.form["email"]}'
         else:
@@ -236,16 +245,16 @@ def login():
             # hash user password
             entered_pass = request.form["password"]
             key = hashlib.pbkdf2_hmac(
-                'sha256', # The hash digest algorithm for HMAC
-                entered_pass.encode('utf-8'), # Convert the password to bytes
-                salt, # Provide the salt
-                100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+                'sha256',  # The hash digest algorithm for HMAC
+                entered_pass.encode('utf-8'),  # Convert the password to bytes
+                salt,  # Provide the salt
+                100000  # It is recommended to use at least 100,000 iterations of SHA-256
             )
-        
+
             # compare the values
-            if request.form['email'] != email :
+            if request.form['email'] != email:
                 error = f'Invalid e. Please try again.'
-            elif  key != password:
+            elif key != password:
                 error = f'Invalid Pass. Please try again.'
             else:
                 login_user(mentor, remember=True)
@@ -279,11 +288,11 @@ def generate_pdf(name, mentor, course, details, cert_id):
         additional_course_details=details,
         date=datetime.date.today(),
         mentor=mentor)
-    
+
     html_file = open('templates/certificate.html', 'w')
     html_file.write(outputText)
     html_file.close()
-    
+
     options = {
         "enable-local-file-access": None,
         "orientation": "Landscape",
@@ -296,12 +305,13 @@ def generate_pdf(name, mentor, course, details, cert_id):
     try:
         dest = f'static/certificates/wdss_cert_{cert_id}.pdf'
         pdfkit.from_file('templates/certificate.html', dest, options=options)
-    
-        infile = PdfFileReader(f'static/certificates/wdss_cert_{cert_id}.pdf', 'rb')
+
+        infile = PdfFileReader(
+            f'static/certificates/wdss_cert_{cert_id}.pdf', 'rb')
         output = PdfFileWriter()
         p = infile.getPage(0)
         output.addPage(p)
-        
+
         with open(f'static/certificates/wdss_cert_{cert_id}.pdf', 'wb') as f:
             output.write(f)
     except Exception as e:
@@ -434,44 +444,45 @@ def crudTableId(table, iden):
 
     return jsonpickle.encode(field)
 
-@app.route('/api/certificate/update', methods=['GET','POST'])
+
+@app.route('/api/certificate/update', methods=['GET', 'POST'])
 @jwt_required
 def update():
     if request.method == "POST":
         cert_id = request.json["certificate_code"]
-        cert_curr = Certification.query.filter_by(certification_code=cert_id).first_or_404()
-        
+        cert_curr = Certification.query.filter_by(
+            certification_code=cert_id).first_or_404()
+
         if "student_id" in request.json:
             student_id = request.json["student_id"]
         else:
             student_id = cert_curr.student_id
-        
+
         if "mentor_id" in request.json:
             mentor_id = request.json["mentor_id"]
         else:
-            mentor_id = cert_curr.mentor_id            
-        
+            mentor_id = cert_curr.mentor_id
+
         if "course_id" in request.json:
             course_id = request.json["course_id"]
         else:
             course_id = cert_curr.course_id
-        
+
         params = {
             "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
             "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
             "course": Course.query.get_or_404(course_id).course_name,
             "desc": Course.query.get_or_404(course_id).course_details,
         }
-        
 
-        
         try:
-            cert = Certification.query.filter_by(certification_code=cert_id).update(dict(student_id=student_id, course_id=course_id, mentor_id=mentor_id))
+            cert = Certification.query.filter_by(certification_code=cert_id).update(
+                dict(student_id=student_id, course_id=course_id, mentor_id=mentor_id))
             db.session.commit()
-            
+
             x = generate_pdf(params['name'], params['mentor'],
-                            params['course'], params['desc'], cert_id)
-            
+                             params['course'], params['desc'], cert_id)
+
             resp = jsonify(cert_id=cert_id, success=True, msg=x)
             return resp
         except BaseException:
@@ -480,9 +491,10 @@ def update():
     courses = Course.query.all()
     students = Student.query.all()
     return render_template('generate.html',
-            mentors=mentors,
-            courses=courses,
-            students=students)
+                           mentors=mentors,
+                           courses=courses,
+                           students=students)
+
 
 @app.route('/api/certificate/generate', methods=['GET', 'POST'])
 @jwt_required
@@ -492,15 +504,13 @@ def generate_api():
         student_id = request.json["student_id"]
         mentor_id = request.json["mentor_id"]
         course_id = request.json["course_id"]
- 
+
         params = {
             "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
             "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
             "course": Course.query.get_or_404(course_id).course_name,
-            "desc": Course.query.get_or_404(course_id).course_details
-        }
+            "desc": Course.query.get_or_404(course_id).course_details}
 
-        
         cert_id = str(random.randint(00000000, 99999999)).zfill(8)
         entry = Certification(
             student_id=student_id,
@@ -514,19 +524,20 @@ def generate_api():
             db.session.commit()
 
             x = generate_pdf(params['name'], params['mentor'],
-                         params['course'], params['desc'], cert_id)
+                             params['course'], params['desc'], cert_id)
 
             resp = jsonify(cert_id=cert_id, success=True, msg=x)
             return resp
         except BaseException:
             return f"There was an issue creating your certificate {params} {cert_id}"
-    
+
     courses = Course.query.all()
     students = Student.query.all()
     return render_template('generate.html',
-            mentor=current_user,
-            courses=courses,
-            students=students)
+                           mentor=current_user,
+                           courses=courses,
+                           students=students)
+
 
 @app.route('/certificate/generate', methods=['GET', 'POST'])
 # @jwt_required
@@ -536,7 +547,7 @@ def generate():
         if not request.json:
             if "student" in request.form:
                 student_id = request.form["student"]
-                
+
             else:
                 student_fname = request.form["student_fname"]
                 student_lname = request.form["student_lname"]
@@ -547,34 +558,32 @@ def generate():
                         courses = Course.query.all()
                         students = Student.query.all()
                         return render_template('generate.html',
-                            mentor=current_user,
-                            courses=courses,
-                            students=students,
-                            error="Student already exists")
+                                               mentor=current_user,
+                                               courses=courses,
+                                               students=students,
+                                               error="Student already exists")
                 entry = Student(
-                student_fname=request.form["student_fname"],
-                student_lname=request.form["student_lname"],
-                student_email=request.form["student_email"])
-                
+                    student_fname=request.form["student_fname"],
+                    student_lname=request.form["student_lname"],
+                    student_email=request.form["student_email"])
+
                 db.session.add(entry)
                 db.session.commit()
                 student_id = entry.student_id
-            
+
             mentor_id = request.form["mentor"]
             course_id = request.form["course"]
         else:
             student_id = request.json["student_id"]
             mentor_id = request.json["mentor_id"]
             course_id = request.json["course_id"]
- 
+
         params = {
             "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
             "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
             "course": Course.query.get_or_404(course_id).course_name,
-            "desc": Course.query.get_or_404(course_id).course_details
-        }
+            "desc": Course.query.get_or_404(course_id).course_details}
 
-        
         cert_id = str(random.randint(00000000, 99999999)).zfill(8)
         entry = Certification(
             student_id=student_id,
@@ -588,27 +597,27 @@ def generate():
             db.session.commit()
 
             x = generate_pdf(params['name'], params['mentor'],
-                         params['course'], params['desc'], cert_id)
+                             params['course'], params['desc'], cert_id)
             if not request.json:
                 courses = Course.query.all()
                 students = Student.query.all()
                 return render_template('generate.html',
-                        mentor=current_user,
-                        courses=courses,
-                        students=students,
-                        cert_id=cert_id)
+                                       mentor=current_user,
+                                       courses=courses,
+                                       students=students,
+                                       cert_id=cert_id)
 
             resp = jsonify(cert_id=cert_id, success=True, msg=x)
             return resp
         except BaseException:
             return f"There was an issue creating your certificate {params} {cert_id}"
-    
+
     courses = Course.query.all()
     students = Student.query.all()
     return render_template('generate.html',
-            mentor=current_user,
-            courses=courses,
-            students=students)
+                           mentor=current_user,
+                           courses=courses,
+                           students=students)
 
 
 @app.route('/api/htmltemplate')
@@ -622,6 +631,7 @@ def htmltemplate():
 def preview():
     return render_template("certificate.html")
 
+
 @app.route('/certificates/all')
 @login_required
 def all_certificates():
@@ -634,21 +644,23 @@ def all_certificates():
         mentor = f'{Mentor.query.get_or_404(cert.mentor_id).mentor_fname} {Mentor.query.get_or_404(cert.mentor_id).mentor_lname}'
         course = f'{Course.query.get_or_404(cert.course_id).course_name} {Course.query.get_or_404(cert.course_id).course_details}'
         student = f'{Student.query.get_or_404(cert.student_id).student_email} {Student.query.get_or_404(cert.student_id).student_lname}'
-        res.append([cert.certification_code, student, course,  mentor, cert.certification_date])
+        res.append([cert.certification_code, student,
+                    course, mentor, cert.certification_date])
     return render_template("allcerts.html",
-    certificates=res)
-    
+                           certificates=res)
+
+
 @app.route('/certificate/<iden>')
 def certificate(iden):
     if iden == "00000000":
         return render_template(
-                "cert.html",
-                iden=url_for(
-                    'static',
-                    filename=f"certificates/wdss_cert_{iden}.pdf"),
-                courseName="Introduction to Python",
-                studentName="Ann Example",
-                cert_id=iden)
+            "cert.html",
+            iden=url_for(
+                'static',
+                filename=f"certificates/wdss_cert_{iden}.pdf"),
+            courseName="Introduction to Python",
+            studentName="Ann Example",
+            cert_id=iden)
 
     certInfo = Certification.query.filter_by(certification_code=iden).first()
     if certInfo is None:
@@ -664,7 +676,6 @@ def certificate(iden):
         courseName=courseName,
         studentName=studentName,
         cert_id=iden)
-
 
 
 if __name__ == '__main__':
