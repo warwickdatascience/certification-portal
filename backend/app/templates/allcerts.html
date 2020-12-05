@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>Create certificates</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+
+  </head>
+  <body>
+    <table class="table">
+        <thead>
+        <tr>
+            <th> cert code </th>
+            <th> student </th>
+            <th> course </th>
+            <th> mentor </th>
+            <th> date issued </th>
+        </tr>
+        </thead>
+        <tbody>
+            
+            {% for cert in certificates %}
+            <tr>
+                <th> {{ cert[0] }}</th>
+                <td> {{ cert[1] }} </td>
+                <td> {{ cert[2] }} </td>
+                <td> {{ cert[3] }} </td>
+                <td> {{ cert[4] }} </td>
+            </tr>
+            {% endfor %}
+    
+            
+            
+        </tbody>
+    </table>
+    
+  </body>
+</html>

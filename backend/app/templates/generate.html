@@ -1,38 +1,91 @@
 <html>
   <head>
-    <title>Flask Intro - login page</title>
+    <title>Create certificates</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+
   </head>
   <body>
-    <div class="container">
-      <h1>Generate Certificate</h1>
-      <br>
-      
-      <form action="" method="post">
-        <select id="student" name="student">
-          {% for student in students %}
-            <option value={{ student.id }}> {{ student.primary_key }} {{ student.student_lname }} {{ student.student_email }} </option>
-          {% endfor %}
-        </select>
-        <input type="text" placeholder="student" name="student" value="{{
-          request.form.student_id }}">
-        <select id="mentor" name="mentor">
-          {% for mentor in mentors %}
-            <option> {{ mentor.mentor_fname }} {{ mentor.mentor_lname }}</option>
-          {% endfor %}
-        </select>
-        <select id="course" name="course">
-          {% for course in courses %}
-            <option> {{ course.course_name }}</option>
-          {% endfor %}
-        </select>
+    <section class="section">
+      <nav class="level">
+      <!-- Left side -->
+      <div class="level-left">
+        
+          <h1 class="title is-1">Generate Certificate</h1>
+        
+        
        
-        <input class="btn btn-default" type="submit" value="Generate">
-      </form>
-      {% if error %}
-        <p class="error"><strong>Error:</strong> {{ error }}
-      {% endif %}
-    </div>
+      </div>
+
+      <!-- Right side -->
+      <div class="level-right">
+        <a href={{ url_for('logout') }} <button class="button is-danger">Sign Out </button>
+        </a>
+
+      </div>
+    </nav>
+      <div class="container">
+        
+        
+        
+        <p>Signing certificates as: {{ current_user.mentor_fname }} {{ current_user.mentor_lname }}</p>
+        <p><a href="{{ url_for('change_password') }}"> Change password </a> |
+          <a href="{{ url_for('all_certificates') }}"> Table of Certs Issued </a> 
+        </p>
+        <br>
+        <h3 class="title is-3"> New Student </h3>
+        <form action="" method="post">
+          <label> first name: </label> <input class="input" type="text" placeholder="student first name" name="student_fname" value="{{
+            request.form.student_id }}"><br><br>
+          <label> last name: </label> <input class="input"  type="text" placeholder="student last name" name="student_lname" value="{{
+            request.form.student_id }}"><br><br>
+          <label> email: </label> <input class="input"  type="text" placeholder="student email" name="student_email" value="{{
+          request.form.student_id }}"><br><br>
+          
+          <input type="hidden" name="mentor" value="{{ current_user.mentor_id }}">
+          <label> course: </label>
+          <div class="select" >
+            <select id="course" name="course">
+            {% for course in courses %}
+              <option value= {{ course.course_id }} > {{ course.course_name }} {{ course.course_details }}</option>
+            {% endfor %}
+          </select></div>
+        <br><br>
+          <input class="button " type="submit" value="Generate">
+        </form>
+        <hr>
+        <h3 class="title is-3"> Existing student </h3>
+
+
+        <form action="" method="post">
+          <label> student:</label> <br>
+          <div class="select" >
+            <select id="student" name="student">
+            {% for student in students %}
+              <option value={{ student.student_id }}> {{ student.student_fname }} {{ student.student_lname }} {{ student.student_email }} </option>
+            {% endfor %}
+          </select>
+          </div><br><br>
+          
+          <input type="hidden" name="mentor" value="{{ current_user.mentor_id }}">
+          <label> course: </label>
+          <div class="select" >
+            <select id="course" name="course">
+            {% for course in courses %}
+              <option value= {{ course.course_id }} > {{ course.course_name }} {{ course.course_details }}</option>
+            {% endfor %}
+          </select>
+          </div>
+        <br><br>
+          <input class="button" type="submit" value="Generate">
+        </form>
+        {% if error %}
+          <p class="error"><strong>Error:</strong> {{ error }}
+        {% endif %}
+        {% if cert_id %}
+          <p class="certi_d"><strong>Certificate code:</strong> {{ cert_id }}
+        {% endif %}
+      </div>
+    </section>
   </body>
 </html>

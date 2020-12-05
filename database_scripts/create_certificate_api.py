@@ -34,7 +34,8 @@ def add_mentor_api(access_token, fname, lname):
     headers = {"Authorization": f'JWT {access_token}',
             "Cookie": f'access_token_cookie={access_token}'}
 
-    data = {'mentor_fname': fname, 'mentor_lname': lname}
+    data = {'mentor_fname': fname, 'mentor_lname': lname, 'mentor_email': email,
+        'password': password}
     request = requests.post(url, json=data, headers=headers)        
     
 # STUDENTS
@@ -69,19 +70,39 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
 
     return x.json()['cert_id']
 
+def add_mentor(fname, lname, email=None):
+    if email is not None:
+        sql = "INSERT INTO mentor (mentor_fname, mentor_lname, mentor_email, password, salt) VALUES (%s, %s, %s, %s, %s)"
+        password = "password"
+        
+        salt = os.urandom(32)
+        key = hashlib.pbkdf2_hmac(
+            'sha256',  # The hash digest algorithm for HMAC
+            password.encode('utf-8'),  # Convert the password to bytes
+            salt,  # Provide the salt
+            100000  # It is recommended to use at least 100,000 iterations of SHA-256
+        )
+        
+        val = (fname, lname, email, key, salt)
+    else:
+        sql = "INSERT INTO mentor (mentor_fname, mentor_lname) VALUES (%s, %s)"
+        val = (fname, lname)
+    mycursor.execute(sql, val)
+    mydb.commit()
 
 def pre_load_mentors():
-    add_mentor_api(jwt, "Tim", "Hargreaves")
-    add_mentor_api(jwt, "Brandusa", "Draghici")
-    add_mentor_api(jwt, "Ciarán", "Evans")
-    add_mentor_api(jwt, "Farhan", "Tariq")
-    add_mentor_api(jwt, "Gabriel", "Musker")
-    add_mentor_api(jwt, "Horia", "Druliac")
-    add_mentor_api(jwt, "Janique", "Krasnowska")
-    add_mentor_api(jwt, "Lucy", "McArthur")
-    add_mentor_api(jwt, "Martin", "Smit")
-    add_mentor_api(jwt, "Raul-Octavian", "Rus")
-    add_mentor_api(jwt, "Yasser", "Qureshi")
+    add_mentor( "Tim", "Hargreaves", "TH@warwick.ac.uk")
+    add_mentor( "Brandusa", "Draghici", "BD@warwick.ac.uk")
+    add_mentor( "Ciarán", "Evans", "CE@warwick.ac.uk")
+    add_mentor( "Farhan", "Tariq", "FT@warwick.ac.uk")
+    add_mentor( "Gabriel", "Musker", "GM@warwick.ac.uk")
+    add_mentor( "Horia", "Druliac", "HD@warwick.ac.uk")
+    add_mentor( "Janique", "Krasnowska", "JK@warwick.ac.uk")
+    add_mentor( "Lucy", "McArthur", "LM@warwick.ac.uk")
+    add_mentor( "Martin", "Smit", "MS@warwick.ac.uk")
+    add_mentor( "Raul-Octavian", "Rus", "RR@warwick.ac.uk")
+    add_mentor( "Yasser", "Qureshi", "YQ@warwick.ac.uk")
+    add_mentor( "Yasddddser", "Qureshi")
 
 
 def pre_load_courses():
