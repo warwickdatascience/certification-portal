@@ -29,7 +29,9 @@
         
         
         <p>Signing certificates as: {{ current_user.mentor_fname }} {{ current_user.mentor_lname }}</p>
-        <a href="{{ url_for('change_password') }}"><p> Change password </p></a>
+        <p><a href="{{ url_for('change_password') }}"> Change password </a> |
+          <a href="{{ url_for('all_certificates') }}"> Table of Certs Issued </a> 
+        </p>
         <br>
         <h3 class="title is-3"> New Student </h3>
         <form action="" method="post">
