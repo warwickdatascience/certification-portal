@@ -169,6 +169,7 @@ def auth():
             set_refresh_cookies(resp, refresh_token)
 
             return resp, 200
+    return "ok", 200
     return render_template('login.html', error=error)
 
 
@@ -258,7 +259,7 @@ def login():
         mentor = Mentor.query.filter_by(
             mentor_email=request.form['email']).first()
         if mentor is None:
-            error = f'Invalid Cssredentials. Please try again.{request.form["email"]}'
+            error = f'Invalid Credentials. Please try again.'
         else:
             email = mentor.mentor_email
             password = mentor.password
@@ -273,10 +274,8 @@ def login():
             )
 
             # compare the values
-            if request.form['email'] != email:
-                error = f'Invalid e. Please try again.'
-            elif key != password:
-                error = f'Invalid Pass. Please try again.'
+            if request.form['email'] != email or key != password:
+                error = f'Invalid Credentials. Please try again.'
             else:
                 login_user(mentor, remember=True)
                 return redirect(url_for('generate'))
