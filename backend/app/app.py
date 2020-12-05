@@ -18,7 +18,7 @@ from flask_jwt_extended import (
     get_jwt_identity, set_access_cookies,
     set_refresh_cookies, unset_jwt_cookies
 )
-
+from flask_login import LoginManager, UserMixin , current_user, login_user, login_required, logout_user
 from werkzeug.security import safe_str_cmp
 import requests
 import jinja2
@@ -60,19 +60,23 @@ app.config['JWT_COOKIE_CSRF_PROTECT'] = False
 app.config['JWT_SECRET_KEY'] = 'Jiowaj213eddDw'  # Change this!
 
 jwt = JWTManager(app)
-
+login_manager = LoginManager()
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://root:{os.environ['SQL_ROOT_PASSWORD']}@db:3306/certificate_portal"
 # the variable to be used for all SQLAlchemy commands
 db = SQLAlchemy(app)
+login_manager.init_app(app)
 
-
-class Mentor(db.Model):
+class Mentor(UserMixin, db.Model):
     __tablename__ = "mentor"
     mentor_id = db.Column(db.Integer, primary_key=True)
     mentor_fname = db.Column(db.String)
     mentor_lname = db.Column(db.String)
-
+    mentor_email = db.Column(db.String)
+    password = db.Column(db.BLOB)
+    salt = db.Column(db.BLOB)
+    def get_id(self):
+        return (self.mentor_id)
 
 class Student(db.Model):
     __tablename__ = "student"
@@ -105,13 +109,18 @@ class User(db.Model):
     password = db.Column(db.BLOB)
     salt = db.Column(db.BLOB)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return Mentor.query.get(int(user_id))
+    
+
 @app.route('/')
 def home():
     return redirect("https://www.wdss.io/")
 
 
 @app.route('/token/auth', methods=['GET', 'POST'])
-def login():
+def auth():
     error = None
     
     if request.method == 'POST':
@@ -156,30 +165,92 @@ def login():
     return render_template('login.html', error=error)
 
 
-@app.route('/token/refresh', methods=['POST'])
-@jwt_refresh_token_required
-def refresh():
-    # Create the new access token
-    current_user = get_jwt_identity()
-    access_token = create_access_token(identity=current_user)
-
-    # Set the JWT access cookie in the response
-    resp = jsonify({'refresh': True})
-    set_access_cookies(resp, access_token)
-    return resp, 200
-
-# Because the JWTs are stored in an httponly cookie now, we cannot
-# log the user out by simply deleting the cookie in the frontend.
-# We need the backend to send us a response to delete the cookies
-# in order to logout. unset_jwt_cookies is a helper function to
-# do just that.
-
-
-@app.route('/token/remove', methods=['POST'])
+@app.route('/logout')
 def logout():
-    resp = jsonify({'logout': True})
-    unset_jwt_cookies(resp)
-    return resp, 200
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/changepassword', methods=['GET', 'POST'])
+def change_password():
+    error = None
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        
+        user = Mentor.query.get_or_404(current_user.mentor_id)
+        salt = user.salt
+        new_salt = os.urandom(32)
+
+        key = hashlib.pbkdf2_hmac(
+            'sha256', # The hash digest algorithm for HMAC
+            old_password.encode('utf-8'), # Convert the password to bytes
+            salt, # Provide the salt
+            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+        )
+        
+        new_key = hashlib.pbkdf2_hmac(
+            'sha256', # The hash digest algorithm for HMAC
+            new_password.encode('utf-8'), # Convert the password to bytes
+            new_salt, # Provide the salt
+            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+        )
+        confirm_key = hashlib.pbkdf2_hmac(
+            'sha256', # The hash digest algorithm for HMAC
+            confirm_password.encode('utf-8'), # Convert the password to bytes
+            new_salt, # Provide the salt
+            100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+        )
+        # compare the values
+        if user.password != key:
+            error = f'Invalid Password. Please try again.'
+        elif new_key != confirm_key:
+            error = f'Passwords do not match. Please try again.'
+        else:
+            user.password = new_key
+            user.salt = new_salt
+            mentor = Mentor.query.filter_by(mentor_id=user.mentor_id).update(
+                dict(mentor_email='boop',
+                    password=new_key, 
+                     salt=new_salt
+                    )
+                )
+            db.session.commit()
+            error = 'Password updated'
+
+    return render_template('changepass.html', error=error)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        # get username and password from database
+        mentor = Mentor.query.filter_by(mentor_email=request.form['email']).first()
+        if mentor is None:
+            error = f'Invalid Cssredentials. Please try again.{request.form["email"]}'
+        else:
+            email = mentor.mentor_email
+            password = mentor.password
+            salt = mentor.salt
+            # hash user password
+            entered_pass = request.form["password"]
+            key = hashlib.pbkdf2_hmac(
+                'sha256', # The hash digest algorithm for HMAC
+                entered_pass.encode('utf-8'), # Convert the password to bytes
+                salt, # Provide the salt
+                100000 # It is recommended to use at least 100,000 iterations of SHA-256 
+            )
+        
+            # compare the values
+            if request.form['email'] != email :
+                error = f'Invalid e. Please try again.'
+            elif  key != password:
+                error = f'Invalid Pass. Please try again.'
+            else:
+                login_user(mentor, remember=True)
+                return redirect(url_for('generate'))
+    return render_template('login.html', error=error)
 
 
 # test the database connection through this route (for debugging)
@@ -240,16 +311,16 @@ def generate_pdf(name, mentor, course, details, cert_id):
 
 
 @app.route("/api/crud/<table>", methods=["POST", "GET"])
-@jwt_required
+# @jwt_required
 def crudTable(table):
     # create a new entry
     if request.method == "POST":
         # no checking - just throw an exception if SQL fails
-        if table == "mentor":
-            entry = Mentor(
-                mentor_fname=request.json["mentor_fname"],
-                mentor_lname=request.json["mentor_lname"])
-        elif table == "student":
+        # if table == "mentor":
+        #     entry = Mentor(
+        #         mentor_fname=request.json["mentor_fname"],
+        #         mentor_lname=request.json["mentor_lname"])
+        if table == "student":
             entry = Student(
                 student_fname=request.json["student_fname"],
                 student_lname=request.json["student_lname"],
@@ -300,7 +371,7 @@ def crudTable(table):
 
 
 @app.route("/api/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
-@jwt_required
+# @jwt_required
 def crudTableId(table, iden):
     if table == "mentor":
         field = Mentor.query.get_or_404(iden)
@@ -415,17 +486,13 @@ def update():
 
 @app.route('/api/certificate/generate', methods=['GET', 'POST'])
 @jwt_required
-def generate():
+def generate_api():
     if request.method == 'POST':
-        if not request.json:
-            student_id = request.form["student"]
-            mentor_id = request.form["mentor"]
-            course_id = request.form["course"]
-        else:
-            student_id = request.json["student_id"]
-            mentor_id = request.json["mentor_id"]
-            course_id = request.json["course_id"]
 
+        student_id = request.json["student_id"]
+        mentor_id = request.json["mentor_id"]
+        course_id = request.json["course_id"]
+ 
         params = {
             "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
             "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
@@ -433,7 +500,7 @@ def generate():
             "desc": Course.query.get_or_404(course_id).course_details
         }
 
-
+        
         cert_id = str(random.randint(00000000, 99999999)).zfill(8)
         entry = Certification(
             student_id=student_id,
@@ -448,15 +515,98 @@ def generate():
 
             x = generate_pdf(params['name'], params['mentor'],
                          params['course'], params['desc'], cert_id)
+
             resp = jsonify(cert_id=cert_id, success=True, msg=x)
             return resp
         except BaseException:
             return f"There was an issue creating your certificate {params} {cert_id}"
-    mentors = Mentor.query.all()
+    
     courses = Course.query.all()
     students = Student.query.all()
     return render_template('generate.html',
-            mentors=mentors,
+            mentor=current_user,
+            courses=courses,
+            students=students)
+
+@app.route('/certificate/generate', methods=['GET', 'POST'])
+# @jwt_required
+@login_required
+def generate():
+    if request.method == 'POST':
+        if not request.json:
+            if "student" in request.form:
+                student_id = request.form["student"]
+                
+            else:
+                student_fname = request.form["student_fname"]
+                student_lname = request.form["student_lname"]
+                student_email = request.form["student_email"]
+                students = Student.query.all()
+                for student in students:
+                    if student.student_email == student_email:
+                        courses = Course.query.all()
+                        students = Student.query.all()
+                        return render_template('generate.html',
+                            mentor=current_user,
+                            courses=courses,
+                            students=students,
+                            error="Student already exists")
+                entry = Student(
+                student_fname=request.form["student_fname"],
+                student_lname=request.form["student_lname"],
+                student_email=request.form["student_email"])
+                
+                db.session.add(entry)
+                db.session.commit()
+                student_id = entry.student_id
+            
+            mentor_id = request.form["mentor"]
+            course_id = request.form["course"]
+        else:
+            student_id = request.json["student_id"]
+            mentor_id = request.json["mentor_id"]
+            course_id = request.json["course_id"]
+ 
+        params = {
+            "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
+            "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
+            "course": Course.query.get_or_404(course_id).course_name,
+            "desc": Course.query.get_or_404(course_id).course_details
+        }
+
+        
+        cert_id = str(random.randint(00000000, 99999999)).zfill(8)
+        entry = Certification(
+            student_id=student_id,
+            course_id=course_id,
+            mentor_id=mentor_id,
+            certification_code=cert_id,
+            certification_date=datetime.date.today())
+
+        try:
+            db.session.add(entry)
+            db.session.commit()
+
+            x = generate_pdf(params['name'], params['mentor'],
+                         params['course'], params['desc'], cert_id)
+            if not request.json:
+                courses = Course.query.all()
+                students = Student.query.all()
+                return render_template('generate.html',
+                        mentor=current_user,
+                        courses=courses,
+                        students=students,
+                        cert_id=cert_id)
+
+            resp = jsonify(cert_id=cert_id, success=True, msg=x)
+            return resp
+        except BaseException:
+            return f"There was an issue creating your certificate {params} {cert_id}"
+    
+    courses = Course.query.all()
+    students = Student.query.all()
+    return render_template('generate.html',
+            mentor=current_user,
             courses=courses,
             students=students)
 
@@ -472,7 +622,22 @@ def htmltemplate():
 def preview():
     return render_template("certificate.html")
 
-
+@app.route('/certificates/all')
+@login_required
+def all_certificates():
+    """
+    get all certificates
+    """
+    certs = Certification.query.all()
+    res = []
+    for cert in certs:
+        mentor = f'{Mentor.query.get_or_404(cert.mentor_id).mentor_fname} {Mentor.query.get_or_404(cert.mentor_id).mentor_lname}'
+        course = f'{Course.query.get_or_404(cert.course_id).course_name} {Course.query.get_or_404(cert.course_id).course_details}'
+        student = f'{Student.query.get_or_404(cert.student_id).student_email} {Student.query.get_or_404(cert.student_id).student_lname}'
+        res.append([cert.certification_code, student, course,  mentor, cert.certification_date])
+    return render_template("allcerts.html",
+    certificates=res)
+    
 @app.route('/certificate/<iden>')
 def certificate(iden):
     if iden == "00000000":

@@ -43,7 +43,7 @@ mycursor.execute("DROP TABLE IF EXISTS certification")
 mycursor.execute("DROP TABLE IF EXISTS user")
 mycursor.execute("SET FOREIGN_KEY_CHECKS = 1")
 mycursor.execute(
-    "CREATE TABLE mentor(mentor_id INT PRIMARY KEY AUTO_INCREMENT, mentor_fname NVARCHAR(100), mentor_lname NVARCHAR(30))")
+    "CREATE TABLE mentor(mentor_id INT PRIMARY KEY AUTO_INCREMENT, mentor_fname NVARCHAR(100), mentor_lname NVARCHAR(30), mentor_email NVARCHAR(100), password BLOB, salt BLOB)")
 mycursor.execute("CREATE TABLE student(student_id INT PRIMARY KEY AUTO_INCREMENT, student_fname NVARCHAR(100), student_lname NVARCHAR(30), student_email NVARCHAR(40))")
 mycursor.execute(
     "CREATE TABLE course(course_id INT PRIMARY KEY AUTO_INCREMENT, course_name NVARCHAR(100), course_details NVARCHAR(200))")
