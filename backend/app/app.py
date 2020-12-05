@@ -173,12 +173,14 @@ def auth():
 
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
 
 @app.route('/changepassword', methods=['GET', 'POST'])
+@login_required
 def change_password():
     error = None
     if request.method == 'POST':
@@ -321,7 +323,7 @@ def generate_pdf(name, mentor, course, details, cert_id):
 
 
 @app.route("/api/crud/<table>", methods=["POST", "GET"])
-# @jwt_required
+@jwt_required
 def crudTable(table):
     # create a new entry
     if request.method == "POST":
@@ -381,7 +383,7 @@ def crudTable(table):
 
 
 @app.route("/api/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
-# @jwt_required
+@jwt_required
 def crudTableId(table, iden):
     if table == "mentor":
         field = Mentor.query.get_or_404(iden)
@@ -540,7 +542,6 @@ def generate_api():
 
 
 @app.route('/certificate/generate', methods=['GET', 'POST'])
-# @jwt_required
 @login_required
 def generate():
     if request.method == 'POST':
@@ -632,7 +633,7 @@ def preview():
     return render_template("certificate.html")
 
 
-@app.route('/certificates/all')
+@app.route('/certificate/all')
 @login_required
 def all_certificates():
     """
