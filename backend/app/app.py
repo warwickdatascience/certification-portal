@@ -179,10 +179,30 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route('/api/password/temp/', methods=['POST'])
+# @jwt_required
+def temp_pass():
+    password=os.environ['TEMP_MENTOR_PASSWORD']
+    salt = os.urandom(32)
+    key = hashlib.pbkdf2_hmac(
+        'sha256',  # The hash digest algorithm for HMAC
+        password.encode('utf-8'),  # Convert the password to bytes
+        salt,  # Provide the salt
+        100000  # It is recommended to use at least 100,000 iterations of SHA-256
+    )
+    mentor = Mentor.query.filter_by(mentor_id=str(request.json['mentor_id'])).update(
+        dict(password=key,
+            salt=salt
+            )
+    )
+    db.session.commit()
+    return str(request.json['mentor_id'])
+    
 @app.route('/changepassword', methods=['GET', 'POST'])
 @login_required
 def change_password():
     error = None
+    success = None
     if request.method == 'POST':
         old_password = request.form['old_password']
         new_password = request.form['new_password']
@@ -220,15 +240,14 @@ def change_password():
             user.password = new_key
             user.salt = new_salt
             mentor = Mentor.query.filter_by(mentor_id=user.mentor_id).update(
-                dict(mentor_email='boop',
-                     password=new_key,
+                dict(password=new_key,
                      salt=new_salt
                      )
             )
             db.session.commit()
-            error = 'Password updated'
+            success = 'Password updated'
 
-    return render_template('changepass.html', error=error)
+    return render_template('changepass.html', error=error, success=success)
 
 
 @app.route('/login', methods=['GET', 'POST'])

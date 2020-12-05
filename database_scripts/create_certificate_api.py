@@ -70,18 +70,23 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
 
     return x.json()['cert_id']
 
-def add_mentor(fname, lname, email):
-    sql = "INSERT INTO mentor (mentor_fname, mentor_lname, mentor_email, password, salt) VALUES (%s, %s, %s, %s, %s)"
-    password = "password"
-    salt = os.urandom(32)
-    key = hashlib.pbkdf2_hmac(
-        'sha256',  # The hash digest algorithm for HMAC
-        password.encode('utf-8'),  # Convert the password to bytes
-        salt,  # Provide the salt
-        100000  # It is recommended to use at least 100,000 iterations of SHA-256
-    )
-    
-    val = (fname, lname, email, key, salt)
+def add_mentor(fname, lname, email=None):
+    if email is not None:
+        sql = "INSERT INTO mentor (mentor_fname, mentor_lname, mentor_email, password, salt) VALUES (%s, %s, %s, %s, %s)"
+        password = "password"
+        
+        salt = os.urandom(32)
+        key = hashlib.pbkdf2_hmac(
+            'sha256',  # The hash digest algorithm for HMAC
+            password.encode('utf-8'),  # Convert the password to bytes
+            salt,  # Provide the salt
+            100000  # It is recommended to use at least 100,000 iterations of SHA-256
+        )
+        
+        val = (fname, lname, email, key, salt)
+    else:
+        sql = "INSERT INTO mentor (mentor_fname, mentor_lname) VALUES (%s, %s)"
+        val = (fname, lname)
     mycursor.execute(sql, val)
     mydb.commit()
 
@@ -97,6 +102,7 @@ def pre_load_mentors():
     add_mentor( "Martin", "Smit", "MS@warwick.ac.uk")
     add_mentor( "Raul-Octavian", "Rus", "RR@warwick.ac.uk")
     add_mentor( "Yasser", "Qureshi", "YQ@warwick.ac.uk")
+    add_mentor( "Yasddddser", "Qureshi")
 
 
 def pre_load_courses():
