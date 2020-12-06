@@ -662,8 +662,10 @@ def all_certificates():
     for cert in certs:
         mentor = f'{Mentor.query.get_or_404(cert.mentor_id).mentor_fname} {Mentor.query.get_or_404(cert.mentor_id).mentor_lname}'
         course = f'{Course.query.get_or_404(cert.course_id).course_name} {Course.query.get_or_404(cert.course_id).course_details}'
-        student = f'{Student.query.get_or_404(cert.student_id).student_email} {Student.query.get_or_404(cert.student_id).student_lname}'
-        res.append([cert.certification_code, student,
+        student = f'{Student.query.get_or_404(cert.student_id).student_fname} {Student.query.get_or_404(cert.student_id).student_lname}'
+        student_email = f'{Student.query.get_or_404(cert.student_id).student_email}'
+
+        res.append([cert.certification_code, student, student_email,
                     course, mentor, cert.certification_date])
     return render_template("allcerts.html",
                            certificates=res)
