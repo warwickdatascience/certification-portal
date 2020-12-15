@@ -256,8 +256,9 @@ def login():
     error = None
     if request.method == 'POST':
         # get username and password from database
+        post_email = request.form['email'].lower()
         mentor = Mentor.query.filter_by(
-            mentor_email=request.form['email']).first()
+            mentor_email=post_email).first()
         if mentor is None:
             error = f'Invalid Credentials. Please try again.'
         else:
@@ -274,7 +275,7 @@ def login():
             )
 
             # compare the values
-            if request.form['email'] != email or key != password:
+            if post_email != email or key != password:
                 error = f'Invalid Credentials. Please try again.'
             else:
                 login_user(mentor, remember=True)
