@@ -1,4 +1,6 @@
-backend/app/static/certificates/*
+*.DS_Store
+*.pyc
+certificates/*
 __pycache__/
 venv/
 database_scripts/.env
