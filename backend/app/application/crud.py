@@ -2,42 +2,19 @@ import time
 import os
 import random
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    abort,
-    jsonify,
-    redirect,
-    url_for,
-    Blueprint)
+from flask import Flask, request, jsonify, redirect, Blueprint
 
-from flask import send_file
+from flask_jwt_extended import jwt_required
+ 
 
-from flask_jwt_extended import (
-    JWTManager, jwt_required, create_access_token,
-    jwt_refresh_token_required, create_refresh_token,
-    get_jwt_identity, set_access_cookies,
-    set_refresh_cookies, unset_jwt_cookies
-)
-from flask_login import LoginManager, current_user, login_user, login_required, logout_user
-from werkzeug.security import safe_str_cmp
-import requests
-import jinja2
-import pdfkit
-import datetime
-import hashlib
-import uuid
-from os import listdir
-from os.path import isfile, join
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 from dotenv import load_dotenv
-import pymysql
 import jsonpickle
 from . import db
 from .models import Student, Course, Certification, Mentor
+
 crud_bp = Blueprint("crud_bp", __name__)
 
 
@@ -55,10 +32,8 @@ def testdb():
         return hed + error_text
 
 
-
-
 @crud_bp.route("/api/crud/<table>", methods=["POST", "GET"])
-# @jwt_required
+@jwt_required
 def crudTable(table):
     # create a new entry
     if request.method == "POST":
@@ -71,11 +46,13 @@ def crudTable(table):
             entry = Student(
                 student_fname=request.json["student_fname"],
                 student_lname=request.json["student_lname"],
-                student_email=request.json["student_email"])
+                student_email=request.json["student_email"],
+            )
         elif table == "course":
             entry = Course(
                 course_name=request.json["course_name"],
-                course_details=request.json["course_details"])
+                course_details=request.json["course_details"],
+            )
         elif table == "certification":
             # don't know when this would be used
             entry = Certification(
@@ -83,7 +60,8 @@ def crudTable(table):
                 course_id=request.json["course_id"],
                 mentor_id=request.json["mentor_id"],
                 certification_code=request.json["certification_code"],
-                certification_date=request.json["certification_date"])
+                certification_date=request.json["certification_date"],
+            )
         else:
             return f"Table {table} does not exist!"
         try:
@@ -180,7 +158,3 @@ def crudTableId(table, iden):
             return str(e)
 
     return jsonpickle.encode(field)
-
-
-
-

@@ -1,6 +1,7 @@
 from flask_login import UserMixin
 from . import db
 
+
 class Mentor(UserMixin, db.Model):
     __tablename__ = "mentor"
     mentor_id = db.Column(db.Integer, primary_key=True)
@@ -11,7 +12,7 @@ class Mentor(UserMixin, db.Model):
     salt = db.Column(db.BLOB)
 
     def get_id(self):
-        return (self.mentor_id)
+        return self.mentor_id
 
 
 class Student(db.Model):
