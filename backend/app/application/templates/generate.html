@@ -19,7 +19,7 @@
 
       <!-- Right side -->
       <div class="level-right">
-        <a href={{ url_for('logout') }} <button class="button is-danger">Sign Out </button>
+        <a href={{ url_for('auth_bp.logout') }} <button class="button is-danger">Sign Out </button>
         </a>
 
       </div>
@@ -33,8 +33,8 @@
         {% endif %}
         
         <p>Signing certificates as: {{ current_user.mentor_fname }} {{ current_user.mentor_lname }}</p>
-        <p><a href="{{ url_for('change_password') }}"> Change password </a> |
-          <a href="{{ url_for('all_certificates') }}"> Table of Certs Issued </a> 
+        <p><a href="{{ url_for('auth_bp.change_password') }}"> Change password </a> |
+          <a href="{{ url_for('certs_bp.all_certificates') }}"> Table of Certs Issued </a> 
         </p>
         <br>
         <h3 class="title is-3"> New Student </h3>

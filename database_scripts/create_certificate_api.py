@@ -67,7 +67,7 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
         "mentor_id": mentor_id,
         "course_id": course_id}
     x = requests.post(url, json=data, headers=headers)
-
+    print(x.text)
     return x.json()['cert_id']
 
 def add_mentor(fname, lname, email=None):
