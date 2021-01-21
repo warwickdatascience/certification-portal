@@ -167,7 +167,7 @@ def login():
     error = None
     if request.method == "POST":
         # get username and password from database
-        post_email = request.form["email"]  # .lower()
+        post_email = request.form["email"].lower()
         mentor = Mentor.query.filter_by(mentor_email=post_email).first()
         if mentor is None:
             error = f"Invalid Credentials. Please try again."

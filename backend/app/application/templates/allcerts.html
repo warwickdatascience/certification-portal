@@ -3,17 +3,19 @@
     <title>Create certificates</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
-
+    <script src="{{url_for('static', filename='excellentexport.js')}}" ></script>
   </head>
   <body>
 	  <section class="section">
 	  <div class="container">
 		  <h1 class="title"> All Certs Issued </h1>
  <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names..">
+ <a download="all_certs.csv" href="#" onclick="return ExcellentExport.csv(this, 'myTable');">Export to CSV</a>
     <table id='myTable' class="table">
         <thead>
         <tr>
 	    <th> cert code </th>
+      <td style="display:none;"> hidden code </td>
             <th> student </th>
 	    <th> student email </th>
             <th> course </th>
@@ -26,6 +28,7 @@
             {% for cert in certificates %}
             <tr>
 		    <th> <a href="https://cert.wdss.io/certificate/{{ cert[0] }}" target="_blank"> {{ cert[0] }}</a></th>
+                <td style="display:none;"> {{ cert[0] }} </td>
                 <td> {{ cert[1] }} </td>
                 <td> {{ cert[2] }} </td>
                 <td> {{ cert[3] }} </td>

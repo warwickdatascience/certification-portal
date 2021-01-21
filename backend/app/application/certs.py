@@ -292,7 +292,7 @@ def preview():
 
 
 @certs_bp.route("/certificate/all")
-# @login_required
+@login_required
 def all_certificates():
     """
     get all certificates
