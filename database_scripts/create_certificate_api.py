@@ -102,7 +102,6 @@ def pre_load_mentors():
     add_mentor( "Martin", "Smit", "MS@warwick.ac.uk")
     add_mentor( "Raul-Octavian", "Rus", "RR@warwick.ac.uk")
     add_mentor( "Yasser", "Qureshi", "YQ@warwick.ac.uk")
-    add_mentor( "Yasddddser", "Qureshi")
 
 
 def pre_load_courses():
