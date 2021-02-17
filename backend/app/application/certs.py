@@ -3,7 +3,7 @@ import os
 import random
 import traceback
 from flask import Flask, render_template, request, jsonify, url_for, Blueprint
-
+import json
 from flask_jwt_extended import jwt_required
 
 
@@ -186,7 +186,7 @@ def generate_api():
 
 
 @certs_bp.route("/certificate/generate", methods=["GET", "POST"])
-@login_required
+# @login_required
 def generate():
     if request.method == "POST":
         if not request.json:
@@ -316,6 +316,33 @@ def all_certificates():
             ]
         )
     return render_template("allcerts.html", certificates=res)
+
+
+@certs_bp.route("/api/certificate/all")
+def all_certificates_api():
+    """
+    get all certificates
+    """
+    certs = Certification.query.all()
+    res = []
+    for cert in certs:
+        mentor = f"{Mentor.query.get_or_404(cert.mentor_id).mentor_fname} {Mentor.query.get_or_404(cert.mentor_id).mentor_lname}"
+        course = f"{Course.query.get_or_404(cert.course_id).course_name} {Course.query.get_or_404(cert.course_id).course_details}"
+        student = f"{Student.query.get_or_404(cert.student_id).student_fname} {Student.query.get_or_404(cert.student_id).student_lname}"
+        student_email = f"{Student.query.get_or_404(cert.student_id).student_email}"
+
+        res.append(
+            {
+                "certification_code": cert.certification_code,
+                "student_name": student,
+                "student_email": student_email,
+                "course": course,
+                "mentor": mentor,
+                "date_issued": cert.certification_date,
+            }
+        )
+    resp = jsonify(certs=res)
+    return resp
 
 
 @certs_bp.route("/certificate/<iden>")

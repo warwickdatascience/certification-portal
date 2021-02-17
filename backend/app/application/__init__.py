@@ -3,7 +3,7 @@ import os
 import random
 
 from flask import Flask, render_template, request, redirect
-
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from flask_login import LoginManager
@@ -24,9 +24,10 @@ def create_app():
     app = Flask(__name__, instance_relative_config=False)
     app.debug = True
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
-
+    
     app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 
+    CORS(app, resources={r'/*': {'origins': '*'}})
     # Set the cookie paths, so that you are only sending your access token
     # cookie to the access endpoints, and only sending your refresh token
     # to the refresh endpoint. Technically this is optional, but it is in

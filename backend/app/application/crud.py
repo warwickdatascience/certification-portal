@@ -5,7 +5,7 @@ import random
 from flask import Flask, request, jsonify, redirect, Blueprint
 
 from flask_jwt_extended import jwt_required
- 
+import json 
 
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +13,7 @@ from sqlalchemy.sql import text
 from dotenv import load_dotenv
 import jsonpickle
 from . import db
-from .models import Student, Course, Certification, Mentor
+from .models import Student, Course, Certification, Mentor, AlchemyEncoder
 
 crud_bp = Blueprint("crud_bp", __name__)
 
@@ -33,7 +33,7 @@ def testdb():
 
 
 @crud_bp.route("/api/crud/<table>", methods=["POST", "GET"])
-@jwt_required
+# @jwt_required
 def crudTable(table):
     # create a new entry
     if request.method == "POST":
@@ -92,7 +92,8 @@ def crudTable(table):
     else:
         return f"Table {table} does not exist!"
 
-    return jsonpickle.encode(returnArray)
+    return json.dumps(returnArray, cls=AlchemyEncoder)
+    # return jsonpickle.encode(returnArray)
 
 
 @crud_bp.route("/api/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])

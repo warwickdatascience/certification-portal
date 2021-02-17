@@ -11,4 +11,4 @@ flask-jwt-extended
 flask-login
 mysql-connector-python
 python-dotenv
-
+Flask-Cors
