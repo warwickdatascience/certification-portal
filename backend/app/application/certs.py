@@ -79,7 +79,7 @@ def generate_pdf(name, mentor, course, details, cert_id):
 
 
 @certs_bp.route("/api/certificate/update", methods=["GET", "POST"])
-@jwt_required
+@jwt_required()
 def update():
     if request.method == "POST":
         cert_id = request.json["certificate_code"]
@@ -136,7 +136,7 @@ def update():
 
 
 @certs_bp.route("/api/certificate/generate", methods=["GET", "POST"])
-@jwt_required
+@jwt_required()
 def generate_api():
     if request.method == "POST":
 
@@ -280,13 +280,13 @@ def generate():
 
 
 @certs_bp.route("/api/htmltemplate")
-# @jwt_required
+@jwt_required()
 def htmltemplate():
     return render_template("htmltemplate.html")
 
 
 @certs_bp.route("/api/preview")
-@jwt_required
+@jwt_required()
 def preview():
     return render_template("certificate.html")
 
@@ -304,7 +304,6 @@ def all_certificates():
         course = f"{Course.query.get_or_404(cert.course_id).course_name} {Course.query.get_or_404(cert.course_id).course_details}"
         student = f"{Student.query.get_or_404(cert.student_id).student_fname} {Student.query.get_or_404(cert.student_id).student_lname}"
         student_email = f"{Student.query.get_or_404(cert.student_id).student_email}"
-
         res.append(
             [
                 cert.certification_code,

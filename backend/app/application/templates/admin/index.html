@@ -1,0 +1,112 @@
+{% extends 'admin/master.html' %}
+
+{% block head_css %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+<style>
+.panel-heading {
+    background-color: #2c3e50;
+    color: #ffffff;
+    padding:20px;
+}
+
+
+</style>
+{% endblock %}
+{% block body %}
+
+  <div class="inner-container">
+  <h1> Cert Portal</h1>
+  <h3> Admin Panel </h3>
+    <p> This is only accessible to the current Education Officer. Please use the 
+  homepage to generate new certificates. <a href={{ url_for('certs_bp.generate') }} > Generate Certificates </a> </p>
+   
+  <p> This panel is to allow the Education Officier to manage mentors, courses, students, and certificates. <p>
+ 
+  
+  <div class="row">
+    <div class="col-lg-3 col-md-6">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-xs-3">
+                    <i class="fa fa-chalkboard-teacher fa-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <h4>Mentor</h4>
+                    <h6> Create, Read, Update, Delete </h6>
+                </div>
+            </div>
+        </div>
+        <a href={{ url_for('mentor.index_view') }}>
+            <div class="panel-footer">
+                <span class="pull-left"> View Details</span>
+                <span class="pull-right"> <i class="fa fa-arrow-circle-right"></i></span>
+                <div class="clearfix"></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-xs-3">
+                    <i class="fa fa-graduation-cap fa-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <h4>Student</h4>
+                    <h6> Create, Read, Update, Delete </h6>
+                </div>
+            </div>
+        </div>
+        <a href={{ url_for('student.index_view') }}>
+            <div class="panel-footer">
+                <span class="pull-left"> View Details</span>
+                <span class="pull-right"> <i class="fa fa-arrow-circle-right"></i></span>
+                <div class="clearfix"></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-xs-3">
+                    <i class="fa fa-laptop-code fa-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <h4>Course</h4>
+                    <h6> Create, Read, Update, Delete </h6>
+                </div>
+            </div>
+        </div>
+        <a href={{ url_for('course.index_view') }}>
+            <div class="panel-footer">
+                <span class="pull-left"> View Details</span>
+                <span class="pull-right"> <i class="fa fa-arrow-circle-right"></i></span>
+                <div class="clearfix"></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-xs-3">
+                    <i class="fa fa-certificate fa-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <h4>Certification</h4>
+                    <h6> Read, Delete </h6>
+                </div>
+            </div>
+        </div>
+        <a href={{ url_for('certification.index_view') }}>
+            <div class="panel-footer">
+                <span class="pull-left"> View Details</span>
+                <span class="pull-right"> <i class="fa fa-arrow-circle-right"></i></span>
+                <div class="clearfix"></div>
+            </div>
+        </a>
+    </div>
+    </div>
+    </div>
+
+{% endblock %}

@@ -15,7 +15,6 @@ from flask import (
 from flask_jwt_extended import (
     jwt_required,
     create_access_token,
-    jwt_refresh_token_required,
     create_refresh_token,
     get_jwt_identity,
     set_access_cookies,
@@ -164,6 +163,9 @@ def change_password():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("certs_bp.generate"))
+
     error = None
     if request.method == "POST":
         # get username and password from database

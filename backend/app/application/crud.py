@@ -5,7 +5,7 @@ import random
 from flask import Flask, request, jsonify, redirect, Blueprint
 
 from flask_jwt_extended import jwt_required
- 
+
 
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from flask_sqlalchemy import SQLAlchemy
@@ -20,7 +20,7 @@ crud_bp = Blueprint("crud_bp", __name__)
 
 # test the database connection through this route (for debugging)
 @crud_bp.route("/api/dbtest")
-@jwt_required
+@jwt_required()
 def testdb():
     try:
         db.session.query("1").from_statement(text("SELECT 1")).all()
@@ -33,7 +33,7 @@ def testdb():
 
 
 @crud_bp.route("/api/crud/<table>", methods=["POST", "GET"])
-@jwt_required
+@jwt_required()
 def crudTable(table):
     # create a new entry
     if request.method == "POST":
@@ -96,7 +96,7 @@ def crudTable(table):
 
 
 @crud_bp.route("/api/crud/<table>/<iden>", methods=["GET", "PUT", "DELETE"])
-@jwt_required
+@jwt_required()
 def crudTableId(table, iden):
     if table == "mentor":
         field = Mentor.query.get_or_404(iden)
