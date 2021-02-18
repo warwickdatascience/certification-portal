@@ -19,7 +19,7 @@
   <h1> Cert Portal</h1>
   <h3> Admin Panel </h3>
     <p> This is only accessible to the current Education Officer. Please use the 
-  homepage to generate new certificates. <a href={{ url_for('certs_bp.update') }} > Generate Certificates </a> </p>
+  homepage to generate new certificates. <a href={{ url_for('certs_bp.generate') }} > Generate Certificates </a> </p>
    
   <p> This panel is to allow the Education Officier to manage mentors, courses, students, and certificates. <p>
  
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        <a href={{ url_for('mentor.index_view') }}>
+        <a href={{ url_for('course.index_view') }}>
             <div class="panel-footer">
                 <span class="pull-left"> View Details</span>
                 <span class="pull-right"> <i class="fa fa-arrow-circle-right"></i></span>
@@ -98,7 +98,7 @@
                 </div>
             </div>
         </div>
-        <a href={{ url_for('mentor.index_view') }}>
+        <a href={{ url_for('certification.index_view') }}>
             <div class="panel-footer">
                 <span class="pull-left"> View Details</span>
                 <span class="pull-right"> <i class="fa fa-arrow-circle-right"></i></span>

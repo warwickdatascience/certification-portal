@@ -28,7 +28,7 @@
         
         
         {% if cert_id %}
-	View last cert created: <a href="https://cert.wdss.io/certificate/{{ cert_id }}" target="_blank">
+	View last cert created: <a href="{{ url_for('certs_bp.certificate', iden=cert_id)}}" target="_blank">
 		<p class="cert_id"><strong>Certificate code:</strong> {{ cert_id }} </a>
         {% endif %}
         

@@ -286,7 +286,7 @@ def htmltemplate():
 
 
 @certs_bp.route("/api/preview")
-@jwt_required
+@jwt_required()
 def preview():
     return render_template("certificate.html")
 
@@ -304,7 +304,6 @@ def all_certificates():
         course = f"{Course.query.get_or_404(cert.course_id).course_name} {Course.query.get_or_404(cert.course_id).course_details}"
         student = f"{Student.query.get_or_404(cert.student_id).student_fname} {Student.query.get_or_404(cert.student_id).student_lname}"
         student_email = f"{Student.query.get_or_404(cert.student_id).student_email}"
-
         res.append(
             [
                 cert.certification_code,

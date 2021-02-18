@@ -27,7 +27,7 @@
             
             {% for cert in certificates %}
             <tr>
-		    <th> <a href="https://cert.wdss.io/certificate/{{ cert[0] }}" target="_blank"> {{ cert[0] }}</a></th>
+		    <th> <a href="{{ url_for('certs_bp.certificate', iden=cert[0])}}" target="_blank"> {{ cert[0] }}</a></th>
                 <td style="display:none;"> {{ cert[0] }} </td>
                 <td> {{ cert[1] }} </td>
                 <td> {{ cert[2] }} </td>
