@@ -163,6 +163,9 @@ def change_password():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user is not None:
+        return redirect(url_for("certs_bp.generate"))
+
     error = None
     if request.method == "POST":
         # get username and password from database

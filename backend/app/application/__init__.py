@@ -13,7 +13,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 from dotenv import load_dotenv
 import pymysql
-
+from flask_login import login_required
+    
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -61,10 +62,12 @@ def create_app():
         CourseView,
         StudentView,
         CertificationView,
+        HomeAdminView
     )
     from .models import Course, Student, Certification, Mentor
 
-    admin = Admin(app, name="certificateportal", template_mode="bootstrap3")
+    admin = Admin(app, name="Certificate Portal", template_mode="bootstrap3",
+    index_view=HomeAdminView(name='Home'))
     admin.add_view(MentorView(Mentor, db.session))
     admin.add_view(CourseView(Course, db.session))
     admin.add_view(StudentView(Student, db.session))
@@ -77,6 +80,8 @@ def create_app():
     @app.route("/")
     def home():
         return redirect("https://www.wdss.io/")
+    
+
 
     with app.app_context():
         # import parts of our application

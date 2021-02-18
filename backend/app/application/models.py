@@ -11,7 +11,7 @@ class Mentor(UserMixin, db.Model):
     mentor_fname = db.Column(db.String)
     mentor_lname = db.Column(db.String)
     mentor_email = db.Column(db.String)
-    is_admin = db.Column(db.Integer)
+    is_admin = db.Column(db.Boolean)
     password = db.Column(db.BLOB)
     salt = db.Column(db.BLOB)
 
