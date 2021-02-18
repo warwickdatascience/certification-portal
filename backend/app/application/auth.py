@@ -163,7 +163,7 @@ def change_password():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user is not None:
+    if current_user.is_authenticated:
         return redirect(url_for("certs_bp.generate"))
 
     error = None
