@@ -5,7 +5,7 @@ import random
 from flask import Flask, request, jsonify, redirect, Blueprint
 
 from flask_jwt_extended import jwt_required
- 
+
 
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from flask_sqlalchemy import SQLAlchemy

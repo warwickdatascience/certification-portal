@@ -24,7 +24,7 @@ def create_app():
     app = Flask(__name__, instance_relative_config=False)
     app.debug = True
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
-    app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
+    app.config["FLASK_ADMIN_SWATCH"] = "flatly"
     app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 
     # Set the cookie paths, so that you are only sending your access token
@@ -55,16 +55,20 @@ def create_app():
     login_manager.init_app(app)
 
     from flask_admin.contrib.sqla import ModelView
-    from .adminviews import AdminView, MentorView, CourseView, StudentView, CertificationView
+    from .adminviews import (
+        AdminView,
+        MentorView,
+        CourseView,
+        StudentView,
+        CertificationView,
+    )
     from .models import Course, Student, Certification, Mentor
-    
-    admin = Admin(app, name='certificateportal', template_mode='bootstrap3')
+
+    admin = Admin(app, name="certificateportal", template_mode="bootstrap3")
     admin.add_view(MentorView(Mentor, db.session))
     admin.add_view(CourseView(Course, db.session))
     admin.add_view(StudentView(Student, db.session))
     admin.add_view(CertificationView(Certification, db.session))
-
-    
 
     @login_manager.user_loader
     def load_user(user_id):
