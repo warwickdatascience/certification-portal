@@ -51,7 +51,7 @@ class MentorView(AdminView):
         )
         model.password = key
         model.salt = salt
-    # column_list = ('mentor_id', 'mentor_fname', 'mentor_lname', 'mentor_email', 'is_admin')
+    column_list = ('mentor_id', 'mentor_fname', 'mentor_lname', 'mentor_email', 'is_admin')
     column_searchable_list = ('mentor_fname', 'mentor_lname', 'mentor_email')
     column_filters = ('mentor_email',)
     form_excluded_columns = ['salt', 'certification']
