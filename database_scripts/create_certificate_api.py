@@ -70,9 +70,9 @@ def add_certificate(student_id, mentor_id, course_id, access_token):
     print(x.text)
     return x.json()['cert_id']
 
-def add_mentor(fname, lname, email=None):
+def add_mentor(fname, lname, email=None, is_admin=False):
     if email is not None:
-        sql = "INSERT INTO mentor (mentor_fname, mentor_lname, mentor_email, password, salt) VALUES (%s, %s, %s, %s, %s)"
+        sql = "INSERT INTO mentor (mentor_fname, mentor_lname, mentor_email, is_admin, password, salt) VALUES (%s, %s, %s, %s, %s, %s)"
         password = "password"
         
         salt = os.urandom(32)
@@ -83,7 +83,7 @@ def add_mentor(fname, lname, email=None):
             100000  # It is recommended to use at least 100,000 iterations of SHA-256
         )
         
-        val = (fname, lname, email, key, salt)
+        val = (fname, lname, email, is_admin, key, salt)
     else:
         sql = "INSERT INTO mentor (mentor_fname, mentor_lname) VALUES (%s, %s)"
         val = (fname, lname)
@@ -91,7 +91,7 @@ def add_mentor(fname, lname, email=None):
     mydb.commit()
 
 def pre_load_mentors():
-    add_mentor( "Tim", "Hargreaves", "TH@warwick.ac.uk")
+    add_mentor( "Tim", "Hargreaves", "TH@warwick.ac.uk", is_admin=True)
     add_mentor( "Brandusa", "Draghici", "BD@warwick.ac.uk")
     add_mentor( "Ciarán", "Evans", "CE@warwick.ac.uk")
     add_mentor( "Farhan", "Tariq", "FT@warwick.ac.uk")

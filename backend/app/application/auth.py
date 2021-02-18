@@ -15,7 +15,6 @@ from flask import (
 from flask_jwt_extended import (
     jwt_required,
     create_access_token,
-    jwt_refresh_token_required,
     create_refresh_token,
     get_jwt_identity,
     set_access_cookies,
@@ -89,7 +88,7 @@ def auth():
 
 @auth_bp.route("/logout")
 @login_required
-def logout():
+def logout(): 
     logout_user()
     return redirect(url_for("auth_bp.login"))
 

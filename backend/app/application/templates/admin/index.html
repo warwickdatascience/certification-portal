@@ -1,0 +1,40 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+
+
+  <h1> Cert Portal</h1>
+  <h3> Admin Panel </h3>
+  <p> This is only accessible to the current Education Officer. Please use the 
+  homepage to generate new certificates. <a href={{ url_for('certs_bp.update') }} > Generate Certificates </a> </p>
+   
+  <p> This panel is to allow the Education Officier to manage mentors, courses, students, and certificates. <p>
+  <h4> Mentor </h4>
+  <ul>
+    <li> Create </li>
+    <li> Read </li>
+    <li> Update </li>
+    <li> Delete </li>
+  </ul>
+  <h4> Course </h4>
+  <ul>
+    <li> Create </li>
+    <li> Read </li>
+    <li> Update </li>
+    <li> Delete </li>
+  </ul>
+  <h4> Student </h4>
+  <ul>
+    <li> Create </li>
+    <li> Read </li>
+    <li> Update </li>
+    <li> Delete </li>
+  </ul>
+  <h4> Certification </h4>
+  <ul>
+    <li> Read </li>
+    <li> Update (TBA) </li>
+    <li> Delete </li>
+  </ul>
+  
+{% endblock %}

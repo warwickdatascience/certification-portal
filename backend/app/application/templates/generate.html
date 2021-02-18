@@ -35,6 +35,9 @@
         <p>Signing certificates as: {{ current_user.mentor_fname }} {{ current_user.mentor_lname }}</p>
         <p><a href="{{ url_for('auth_bp.change_password') }}"> Change password </a> |
           <a href="{{ url_for('certs_bp.all_certificates') }}"> Table of Certs Issued </a> 
+          {% if current_user.is_admin %}
+          | <a href="{{ url_for('admin.index') }}"> Admin Panel </a>
+        {% endif %}
         </p>
         <br>
         <h3 class="title is-3"> New Student </h3>
