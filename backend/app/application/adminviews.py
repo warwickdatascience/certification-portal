@@ -1,8 +1,9 @@
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView
-from flask import session, redirect, url_for, request
+from flask import session, redirect, url_for, request, flash
 from .models import Mentor
 from flask_login import current_user
+from wtforms.validators import DataRequired, Email
 import os
 import hashlib 
 
@@ -51,6 +52,14 @@ class MentorView(AdminView):
         )
         model.password = key
         model.salt = salt
+    
+    form_args = dict(
+        mentor_fname=dict(label='Firstname', validators=[DataRequired()]),
+        mentor_lname=dict(label='Lastname', validators=[DataRequired()]),
+        mentor_email=dict(label='Email', validators=[DataRequired(), Email()]),
+        password=dict(label='Password', validators=[DataRequired()]),
+    )
+
     column_list = ('mentor_id', 'mentor_fname', 'mentor_lname', 'mentor_email', 'is_admin')
     column_searchable_list = ('mentor_fname', 'mentor_lname', 'mentor_email')
     column_filters = ('mentor_email',)
@@ -65,6 +74,12 @@ class CourseView(AdminView):
     column_list = ('course_id', 'course_name', 'course_details',)
     column_searchable_list = ('course_id', 'course_name', 'course_details',)
     column_filters = ('course_name',)
+    form_excluded_columns = ['course']
+
+    form_args = dict(
+        course_name=dict(label='Course Name', validators=[DataRequired()]),
+        course_details=dict(label='Course Description', validators=[DataRequired()]),   
+    )
 
 class StudentView(AdminView):
 
@@ -85,6 +100,11 @@ class CertificationView(AdminView):
     column_list = ('certification_id', 'student', 'mentor', 'course', 'certification_code', 'certification_date')
     column_searchable_list = ('certification_id', 'student_id', 'mentor_id', 'course_id', 'certification_code', )
     column_filters = ('certification_id', 'student_id', 'mentor_id', 'course_id', 'certification_code', 'certification_date',)
-
+    form_excluded_columns = ['student']
+    form_args = dict(
+        student_fname=dict(label='Firstname', validators=[DataRequired()]),
+        student_lname=dict(label='Lastname', validators=[DataRequired()]),   
+        student_email=dict(label='Email', validators=[DataRequired(), Email()]),   
+    )
     def date_format(self, view, value):
         return value.strftime('%B-%m-%Y')
