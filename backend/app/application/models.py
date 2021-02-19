@@ -18,7 +18,10 @@ class Mentor(UserMixin, db.Model):
     def get_id(self):
         return self.mentor_id
 
-    def __str__(self):
+    def __unicode__(self):
+        return self.mentor_email
+    
+    def __repr__(self):
         return self.mentor_email
 
 
@@ -29,7 +32,10 @@ class Student(db.Model):
     student_lname = db.Column(db.String)
     student_email = db.Column(db.String)
 
-    def __str__(self):
+    def __unicode__(self):
+        return f"{self.student_fname} {self.student_lname} {self.student_email}"
+    
+    def __repr__(self):
         return f"{self.student_fname} {self.student_lname} {self.student_email}"
 
 
@@ -39,9 +45,11 @@ class Course(db.Model):
     course_name = db.Column(db.String)
     course_details = db.Column(db.String)
 
-    def __str__(self):
+    def __unicode__(self):
         return f"{self.course_name} {self.course_details}"
 
+    def __repr__(self):
+        return f"{self.course_name} {self.course_details}"
 
 class Certification(db.Model):
     __tablename__ = "certification"
