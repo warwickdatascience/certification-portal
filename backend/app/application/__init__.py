@@ -14,11 +14,14 @@ from sqlalchemy.sql import text
 from dotenv import load_dotenv
 import pymysql
 from flask_login import login_required
+
+import logging
     
 
 db = SQLAlchemy()
 jwt = JWTManager()
 
+logging.basicConfig(filename='record.log', level=logging.DEBUG)
 
 def create_app():
     load_dotenv()
@@ -80,8 +83,6 @@ def create_app():
     @app.route("/")
     def home():
         return redirect("https://www.wdss.io/")
-    
-
 
     with app.app_context():
         # import parts of our application
