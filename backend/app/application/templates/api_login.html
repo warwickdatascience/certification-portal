@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title>WDSS - Certificate Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.js" integrity="sha256-DrT5NfxfbHvMHux31Lkhxg42LY6of8TaYyK50jnxRnM=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='script.js') }}"></script>
+        
+  </head>
+  <body>
+    <section class="hero banner has-text-centered">
+      <div class="hero-body">
+      <div class="container">
+        <h1 class="title  "> Mentor Login </h1>
+      </div>
+      
+    </section>
+    <section class="hero is-large has-text-centered">
+      
+       <div class="hero-body">
+      <div class="container">
+        <div class="card">
+        <h1 class="title">Login</h1>
+        <br>
+        <form action="" method="post">
+          <div class="container">
+          <input type="text" style="width:30vh" class="input" placeholder="Username" name="username" value="{{
+            request.form.username }}">
+            <br><br>
+          <input type="password" style="width:30vh" class="input" placeholder="Password" name="password" value="{{
+            request.form.password }}">
+            <br><br>
+          <input class="button btn btn-default" type="submit" value="Login">
+          </div>
+        </form>
+        {% if error %}
+          <p class="error"><strong>Error:</strong> {{ error }}
+        {% endif %}
+        </div>
+        </div>
+        
+      </div>
+    </section>
+  </body>
+</html>
