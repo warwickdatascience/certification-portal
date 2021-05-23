@@ -8,3 +8,4 @@ venv/
 database_scripts/.env
 backend/.env
 backend/app/.env
+newcerts/

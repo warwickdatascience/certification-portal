@@ -85,10 +85,11 @@ def create_app():
 
     with app.app_context():
         # import parts of our application
-        from . import auth, crud, certs
+        from . import auth, crud, certs, privacy
 
         app.register_blueprint(auth.auth_bp)
         app.register_blueprint(crud.crud_bp)
         app.register_blueprint(certs.certs_bp)
+        app.register_blueprint(privacy.privacy_bp)
 
         return app

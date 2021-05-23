@@ -187,7 +187,7 @@ def login():
             )
 
             # compare the values
-            if post_email != email or key != password:
+            if key != password:
                 error = f"Invalid Credentials. Please try again."
             else:
                 login_user(mentor, remember=True)
