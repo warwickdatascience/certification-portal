@@ -21,7 +21,7 @@ from .models import User, Mentor, Course, Certification, Student
 certs_bp = Blueprint("certs_bp", __name__)
 
 
-def generate_pdf(name, mentor, course, details, cert_id):
+def generate_pdf(name, mentor, course, details, cert_id, date_completed):
     """
     create pdf
     @param name: student name
@@ -42,7 +42,7 @@ def generate_pdf(name, mentor, course, details, cert_id):
         name=name,
         course_name=course,
         additional_course_details=details,
-        date=datetime.date.today(),
+        date=date_completed,
         mentor=mentor,
     )
 
@@ -102,6 +102,11 @@ def update():
         else:
             course_id = cert_curr.course_id
 
+        if "certification_date" in request.json:
+            certification_date = request.json["certification_date"]
+        else:
+            certification_date = cert_curr.certification_date
+
         params = {
             "name": f"{Student.query.get_or_404(student_id).student_fname} {Student.query.get_or_404(student_id).student_lname}",
             "mentor": f"{Mentor.query.get_or_404(mentor_id).mentor_fname} {Mentor.query.get_or_404(mentor_id).mentor_lname}",
@@ -121,6 +126,7 @@ def update():
                 params["course"],
                 params["desc"],
                 cert_id,
+                certification_date.date()
             )
 
             resp = jsonify(cert_id=cert_id, success=True, msg=x)
@@ -170,6 +176,7 @@ def generate_api():
                 params["course"],
                 params["desc"],
                 cert_id,
+                datetime.date.today()
             )
 
             resp = jsonify(cert_id=cert_id, success=True, msg=x)
@@ -253,6 +260,7 @@ def generate():
                 params["course"],
                 params["desc"],
                 cert_id,
+                datetime.date.today()
             )
             if not request.json:
 
@@ -263,7 +271,7 @@ def generate():
                     mentor=current_user,
                     courses=courses,
                     students=students,
-                    cert_id=cert_id,
+                    cert_id=cert_id
                 )
 
             resp = jsonify(cert_id=cert_id, success=True, msg=x)

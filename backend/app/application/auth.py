@@ -82,8 +82,8 @@ def auth():
             set_refresh_cookies(resp, refresh_token)
 
             return resp, 200
-    return "ok", 200
-    # return render_template('login.html', error=error)
+    #return "ok", 200
+    return render_template('api_login.html', error=error)
 
 
 @auth_bp.route("/logout")
