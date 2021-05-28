@@ -42,7 +42,7 @@ def create_app():
     app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 
     # Set the secret key to sign the JWTs with
-    app.config["JWT_SECRET_KEY"] = "Jiowaj213eddDw"  # Change this!
+    app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]  # Change this!
 
     app.config[
         "SQLALCHEMY_DATABASE_URI"
